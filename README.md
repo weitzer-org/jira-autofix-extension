@@ -12,9 +12,15 @@ The Jira Autofix extension provides a single command (`/jira-autofix`) that orch
 
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli) v0.4.0 or newer
 - [Docker](https://docs.docker.com/get-docker/) (for the GitHub MCP server)
-- [Node.js](https://nodejs.org/) v18+ and npm (for the Atlassian MCP proxy)
+- [Node.js](https://nodejs.org/) v18+ and npm (optional, for development)
 - A **GitHub Personal Access Token** with `repo` scope — [create one here](https://github.com/settings/tokens)
-- An **Atlassian Cloud** account (Jira) — OAuth login will be handled via browser
+- A **Jira API Token** — [create one here](https://id.atlassian.com/manage-profile/security/api-tokens)
+
+### How to generate a Jira API Token
+1. Log in to [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens).
+2. Click **Create API token**.
+3. Give it a label (e.g., "Gemini CLI").
+4. Copy the token to your clipboard—you will need it for the installation prompt.
 
 ## Installing Gemini CLI
 
@@ -49,18 +55,17 @@ During installation you will be prompted for:
 | Prompt | What to enter |
 |---|---|
 | **GitHub Personal Access Token** | A PAT with `repo` scope. **Warning**: Input is stored in plain text in your config file. |
+| **Jira URL** | Your Jira instance URL (e.g., `https://myorg.atlassian.net`). |
+| **Jira Email** | The email address you use to log in to Jira. |
+| **Jira API Token** | A Jira API token. Create one at [id.atlassian.com](https://id.atlassian.com/manage-profile/security/api-tokens). |
 
-### Step 2: Verify the extension is installed
+### Step 3: Verify the extension is installed
 
 ```bash
 gemini extensions list
 ```
 
-You should see `jira-autofix` in the list of installed extensions.
-
-### Step 3: First run — Atlassian OAuth
-
-The first time you run the extension, a browser window will open for **Atlassian OAuth** — sign in and grant access to your Jira instance. This is a one-time setup.
+You should see `jira-autofix` in the list of installed extensions and it should be connected to both GitHub and Jira (via Docker).
 
 ### Managing the extension
 
@@ -140,10 +145,15 @@ gemini extensions config jira-autofix "GitHub Personal Access Token"
 
 # Update for a specific workspace
 gemini extensions config jira-autofix "GitHub Personal Access Token" --scope workspace
+
+# Update Jira settings
+gemini extensions config jira-autofix "Jira URL"
+gemini extensions config jira-autofix "Jira Email"
+gemini extensions config jira-autofix "Jira API Token"
 ```
 
 > [!WARNING]
-> The **GitHub Personal Access Token** is stored in plain text in your `~/.gemini/extensions/settings.json` (or workspace settings). Ensure this file is not shared or committed to version control.
+> The **GitHub Personal Access Token** and **Jira API Token** are stored in plain text in your configuration file. Ensure this file is not shared.
 
 ### GitHub Token Scopes
 
@@ -151,31 +161,13 @@ The minimum required scope for your GitHub PAT is `repo`. This grants:
 - Read access to repository contents
 - Write access to create branches, push commits, and open PRs
 
-### Atlassian OAuth
+### Atlassian Auth
 
-The Atlassian MCP server uses OAuth 2.1 with browser-based consent. On first use:
-1. A browser window opens to `atlassian.com`
-2. Sign in with your Atlassian account
-3. Grant the requested permissions
-4. The token is cached locally by `mcp-remote` in `~/.mcp-auth`
+The Atlassian MCP server uses **API Tokens** for authentication. This eliminates the need for interactive OAuth flows. Your credentials are securely passed to the Docker container via environment variables.
 
-To connect to a specific Atlassian tenant, you can customize the MCP server config in your `~/.gemini/settings.json`:
+To connect to a different Atlassian tenant, simply update the extension configuration using `gemini extensions config`.
 
-```json
-{
-  "mcpServers": {
-    "atlassian": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://mcp.atlassian.com/v1/sse",
-        "--resource",
-        "https://myorg.atlassian.net/"
-      ]
-    }
-  }
-}
-```
+
 
 ## Development
 
@@ -297,9 +289,9 @@ Developer          Gemini CLI           Jira MCP          GitHub MCP
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| Jira MCP server | Official Atlassian (`atlassian/atlassian-mcp-server`) | OAuth 2.1 — no API tokens to manage |
+| Jira MCP server | Docker `ghcr.io/modelcontextprotocol/servers/jira` | Supports API token auth, no hang on startup |
 | GitHub MCP server | Official (`github/github-mcp-server`) via Docker | Maintained by GitHub, broadest tool support |
-| Jira auth | OAuth 2.1 browser flow | Zero-config for the user |
+| Jira auth | API Token (env vars) | Configuration-based, non-interactive |
 | GitHub auth | PAT via extension settings (`sensitive: false`) | Stored in extension config (plain text) |
 | Repo handling | Detect local repo or clone | Avoids unnecessary cloning |
 | Test execution | Auto-detect and run | Reports results but does not block |

@@ -5,11 +5,24 @@
   "contextFileName": "GEMINI.md",
   "mcpServers": {
     "atlassian": {
-      "command": "npx",
+      "command": "docker",
       "args": [
-        "mcp-remote",
-        "https://mcp.atlassian.com/v1/sse"
-      ]
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "JIRA_URL",
+        "-e",
+        "JIRA_EMAIL",
+        "-e",
+        "JIRA_API_TOKEN",
+        "ghcr.io/modelcontextprotocol/servers/jira"
+      ],
+      "env": {
+        "JIRA_URL": "$JIRA_URL",
+        "JIRA_EMAIL": "$JIRA_EMAIL",
+        "JIRA_API_TOKEN": "$JIRA_API_TOKEN"
+      }
     },
     "github": {
       "command": "docker",
@@ -38,6 +51,24 @@
       "description": "GitHub PAT with 'repo' scope for creating branches and pull requests",
       "envVar": "GITHUB_PERSONAL_ACCESS_TOKEN",
       "sensitive": false
+    },
+    {
+      "name": "Jira URL",
+      "description": "Your Jira instance URL (e.g. https://myorg.atlassian.net)",
+      "envVar": "JIRA_URL",
+      "sensitive": false
+    },
+    {
+      "name": "Jira Email",
+      "description": "Email address associated with your Jira account",
+      "envVar": "JIRA_EMAIL",
+      "sensitive": false
+    },
+    {
+      "name": "Jira API Token",
+      "description": "Jira API Token (create at https://id.atlassian.com/manage-profile/security/api-tokens)",
+      "envVar": "JIRA_API_TOKEN",
+      "sensitive": true
     }
   ]
 }
