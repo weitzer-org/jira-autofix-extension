@@ -289,7 +289,7 @@ Developer          Gemini CLI           Jira MCP          GitHub MCP
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| Jira MCP server | Docker `ghcr.io/modelcontextprotocol/servers/jira` | Supports API token auth, no hang on startup |
+| Jira MCP server | Docker `ghcr.io/sooperset/mcp-atlassian` | Supports API token auth, no hang on startup |
 | GitHub MCP server | Official (`github/github-mcp-server`) via Docker | Maintained by GitHub, broadest tool support |
 | Jira auth | API Token (env vars) | Configuration-based, non-interactive |
 | GitHub auth | PAT via extension settings (`sensitive: false`) | Stored in extension config (plain text) |
