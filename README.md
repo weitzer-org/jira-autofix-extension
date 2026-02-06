@@ -60,7 +60,13 @@ You should see `jira-autofix` in the list of installed extensions.
 
 ### Step 3: First run — Atlassian OAuth
 
-The first time you run the extension, a browser window will open for **Atlassian OAuth** — sign in and grant access to your Jira instance. This is a one-time setup.
+The first time you run the extension, you must authenticate with Atlassian. Run this command manually to trigger the OAuth flow:
+
+```bash
+npx -y mcp-remote https://mcp.atlassian.com/v1/sse
+```
+
+Follow the browser prompts to log in. Once you see "Server started" or similar output, checking your connection, you can press **Ctrl+C** to stop it. This caches your credentials for future use by the extension.
 
 ### Managing the extension
 
