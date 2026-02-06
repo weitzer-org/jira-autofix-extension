@@ -14,10 +14,10 @@ When a user wants to fix a Jira issue, resolve a bug, or implement a task from J
 
 ### Atlassian (Jira)
 Use the Atlassian MCP server tools to:
-- Fetch Jira issue details (`getJiraIssue`)
-- Search for related issues (`searchJiraIssuesUsingJql`)
-- Get remote links on issues (`getJiraIssueRemoteIssueLinks`)
-- Add comments to issues (`addCommentToJiraIssue`)
+- Fetch Jira issue details (`jira_get_issue`)
+- Search for related issues (`jira_search`)
+- Get remote links on issues (`jira_get_issue_link_types`)
+- Add comments to issues (`jira_add_comment`)
 
 ### GitHub
 Use the GitHub MCP server tools to:
