@@ -25,9 +25,9 @@ Given a Jira ticket (and optionally a GitHub repository), execute the full fix l
    - If no ticket is provided, ask the user for the Jira ticket URL or key.
 
 2. Use the Atlassian MCP server to fetch the issue details:
-   - Call `getJiraIssue` with the issue key to retrieve the summary, description, acceptance criteria, comments, priority, labels, and components.
-   - Call `searchJiraIssuesUsingJql` with a JQL query to find linked/related issues (e.g., parent epic, blockers, subtasks). Example JQL: `issue in linkedIssues("PROJ-1234") OR parent = "PROJ-1234"`
-   - Call `getJiraIssueRemoteIssueLinks` to check for any linked external resources.
+   - Call `jira_get_issue` with the issue key to retrieve the summary, description, acceptance criteria, comments, priority, labels, and components.
+   - Call `jira_search` with a JQL query to find linked/related issues (e.g., parent epic, blockers, subtasks). Example JQL: `issue in linkedIssues("PROJ-1234") OR parent = "PROJ-1234"`
+   - Call `jira_get_issue_link_types` to check for any linked external resources.
 
 3. Summarize what you learned from the Jira context. Present the following to the developer:
    - **Issue**: key, summary, type, priority
@@ -159,7 +159,7 @@ Given a Jira ticket (and optionally a GitHub repository), execute the full fix l
 ## Phase 7: Update Jira Ticket
 
 18. Use the Atlassian MCP server to post a comment on the original Jira issue:
-    - Call `addCommentToJiraIssue` with a comment containing:
+    - Call `jira_add_comment` with a comment containing:
       ```
       🔧 Automated fix submitted
 
