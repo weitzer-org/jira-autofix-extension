@@ -99,7 +99,7 @@ gemini extensions enable jira-autofix
 
 ### Basic Usage
 
-Run the command via the Gemini CLI:
+**Important**: You must use `gemini run` to execute this command. Do NOT use `gemini /jira-autofix` (which sends it as a chat message).
 
 ```bash
 gemini run jira-autofix "<ISSUE_KEY_OR_URL>"
@@ -112,11 +112,17 @@ gemini run jira-autofix "SCRUM-1"
 
 ### With Debug Mode
 
-To see verbose logs, append the `--debug` flag inside the quotes:
+To see verbose logs, append the `--debug` flag **inside the quotes**:
 
 ```bash
 gemini run jira-autofix "SCRUM-1 --debug"
 ```
+
+> [!TIP]
+> If you see an authentication error like `Cannot create property 'refresh_token'`, run this command to refresh your Cloud Shell credentials:
+> ```bash
+> gcloud auth application-default login
+> ```
 
 ### Interactive Mode
 
