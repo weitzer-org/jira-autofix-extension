@@ -16,6 +16,12 @@ The Jira Autofix extension provides a single command (`/jira-autofix`) that orch
 - A **GitHub Personal Access Token** with `repo` scope — [create one here](https://github.com/settings/tokens)
 - A **Jira API Token** — [create one here](https://id.atlassian.com/manage-profile/security/api-tokens)
 
+### How to generate a Jira API Token
+1. Log in to [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens).
+2. Click **Create API token**.
+3. Give it a label (e.g., "Gemini CLI").
+4. Copy the token to your clipboard—you will need it for the installation prompt.
+
 ## Installing Gemini CLI
 
 If you don't have Gemini CLI installed yet:
