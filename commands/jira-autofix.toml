@@ -38,10 +38,10 @@ Given a Jira ticket (and optionally a GitHub repository), execute the full fix l
 ## Phase 2: Set Up the Repository
 
 4. Determine the GitHub repository:
-   - Check if the user provided a repository URL alongside the ticket.
-   - If not, check if the current working directory is already a git repository by running: `git remote get-url origin`
+   - **CRITICAL**: Do NOT scan the filesystem (e.g., `find`, `ls`) to "find" a repository.
+   - Check if the current working directory is already a git repository: `git remote get-url origin`
      - If it is, confirm with the user: "It looks like you're already in `<repo>`. Should I work in this repository?"
-   - If no repo is available, ask the user to provide the GitHub repository URL.
+   - If the current directory is NOT the correct repo, or if `git remote` fails, **STOP and ask the user** for the GitHub repository URL. Do not guess.
 
 5. Clone or prepare the repository:
    - If the developer confirmed the current directory, skip cloning.
@@ -188,6 +188,7 @@ Given a Jira ticket (and optionally a GitHub repository), execute the full fix l
 - **Never** push to `main` or `master` directly — always create a feature branch.
 - **Never** proceed past a CRITICAL security finding without explicit developer approval.
 - If any phase fails (e.g., clone fails, tests fail, MCP call fails), report the error clearly and ask the developer how to proceed. Do not silently skip steps.
+- **Never** run `find`, `grep`, or file exploration commands on the current directory (`.`) or home directory (`~`) until the repository context is explicitly confirmed and you are inside that directory.
 - Keep all communications concise and structured. Use markdown formatting.
 </CONSTRAINTS>
 """
