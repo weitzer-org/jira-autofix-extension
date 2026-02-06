@@ -95,16 +95,34 @@ gemini extensions enable jira-autofix
 
 ## Usage
 
-### Basic — provide a Jira ticket URL
+### Basic Usage
 
-```
-/jira-autofix https://myorg.atlassian.net/browse/PROJ-1234
+Run the command via the Gemini CLI:
+
+```bash
+gemini run jira-autofix "<ISSUE_KEY_OR_URL>"
 ```
 
-### With just the issue key
-
+Example:
+```bash
+gemini run jira-autofix "SCRUM-1"
 ```
-/jira-autofix PROJ-1234
+
+### With Debug Mode
+
+To see verbose logs, append the `--debug` flag inside the quotes:
+
+```bash
+gemini run jira-autofix "SCRUM-1 --debug"
+```
+
+### Interactive Mode
+
+Alternatively, start the interactive shell:
+
+```bash
+gemini
+> /jira-autofix SCRUM-1 --debug
 ```
 
 ### From inside a repository
