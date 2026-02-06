@@ -16,7 +16,7 @@
         "JIRA_EMAIL",
         "-e",
         "JIRA_API_TOKEN",
-        "ghcr.io/modelcontextprotocol/servers/jira"
+        "ghcr.io/sooperset/mcp-atlassian"
       ],
       "env": {
         "JIRA_URL": "$JIRA_URL",
