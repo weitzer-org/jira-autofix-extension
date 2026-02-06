@@ -72,10 +72,12 @@ You should see `jira-autofix` in the list of installed extensions and it should 
 If you encounter issues or want to see exactly what the extension is doing, you can run it with the `--debug` flag:
 
 ```bash
-/jira-autofix <JIRA-URL> --debug
+gemini run jira-autofix "<JIRA-URL> --debug"
 ```
 
-This will print detailed logs (prefixed with `🐛 [DEBUG]:`) before every tool execution.
+This will print detailed logs (prefixed with `🐛 [DEBUG]:`) before every tool execution, helping you troubleshoot connection or logic issues.
+
+
 
 ### Managing the extension
 
