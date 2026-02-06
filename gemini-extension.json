@@ -1,0 +1,33 @@
+{
+  "name": "jira-autofix",
+  "version": "0.1.0",
+  "description": "Automates resolving Jira issues — from reading the ticket to opening a pull request with the fix",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "atlassian": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://mcp.atlassian.com/v1/sse"]
+    },
+    "github": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "-e", "GITHUB_TOOLSETS",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "$GITHUB_PERSONAL_ACCESS_TOKEN",
+        "GITHUB_TOOLSETS": "repos,pull_requests,issues,context"
+      }
+    }
+  },
+  "settings": [
+    {
+      "name": "GitHub Personal Access Token",
+      "description": "GitHub PAT with 'repo' scope for creating branches and pull requests",
+      "envVar": "GITHUB_PERSONAL_ACCESS_TOKEN",
+      "sensitive": true
+    }
+  ]
+}

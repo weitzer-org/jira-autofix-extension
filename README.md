@@ -4,11 +4,154 @@ An extension for [Gemini CLI](https://github.com/google-gemini/gemini-cli) that 
 
 ## Overview
 
-The Jira Autofix extension provides a single, guided command (`/jira-autofix`) that orchestrates the full lifecycle of fixing a Jira issue: fetching context from Jira, cloning the relevant repo, planning a fix, implementing it, reviewing the code, and opening a PR on GitHub.
+The Jira Autofix extension provides a single command (`/jira-autofix`) that orchestrates the full lifecycle of fixing a Jira issue: fetching context from Jira, cloning the relevant repo, planning a fix, implementing it, reviewing the code, opening a PR on GitHub, and posting the result back to Jira.
 
 ---
 
-## Customer Workflow
+## Prerequisites
+
+- [Gemini CLI](https://github.com/google-gemini/gemini-cli) v0.4.0 or newer
+- [Docker](https://docs.docker.com/get-docker/) (for the GitHub MCP server)
+- [Node.js](https://nodejs.org/) v18+ and npm (for the Atlassian MCP proxy)
+- A **GitHub Personal Access Token** with `repo` scope — [create one here](https://github.com/settings/tokens)
+- An **Atlassian Cloud** account (Jira) — OAuth login will be handled via browser
+
+## Installation
+
+```bash
+gemini extensions install https://github.com/weitzer-org/jira-autofix-extension
+```
+
+During installation you will be prompted for:
+
+| Prompt | What to enter |
+|---|---|
+| **GitHub Personal Access Token** | A PAT with `repo` scope. Input is masked and stored in your OS keychain. |
+
+The first time you run the extension, a browser window will open for **Atlassian OAuth** — sign in and grant access to your Jira instance. This is a one-time setup.
+
+## Usage
+
+### Basic — provide a Jira ticket URL
+
+```
+/jira-autofix https://myorg.atlassian.net/browse/PROJ-1234
+```
+
+### With just the issue key
+
+```
+/jira-autofix PROJ-1234
+```
+
+### From inside a repository
+
+If you're already `cd`'d into the relevant repo, the extension will detect it and skip cloning:
+
+```
+cd ~/projects/my-service
+gemini
+> /jira-autofix PROJ-1234
+```
+
+If you're **not** inside the repo, the extension will ask you for the GitHub repo URL and clone it automatically.
+
+## What Happens
+
+When you run `/jira-autofix`, the extension walks through these steps:
+
+| Step | What happens | Your input needed |
+|---|---|---|
+| 1. Fetch Jira context | Reads the issue, related issues, and comments from Jira | None |
+| 2. Set up repository | Detects or clones the GitHub repo | Repo URL (if not detected) |
+| 3. Plan the fix | Analyzes the codebase and presents a fix plan | Approve or revise the plan |
+| 4. Implement the fix | Makes code changes and runs tests | None (reviews results) |
+| 5. Review changes | Runs security and code quality review on the diff | Address critical findings (if any) |
+| 6. Open pull request | Creates a branch, commits, pushes, and opens a PR | None |
+| 7. Update Jira | Posts a comment on the Jira issue with the PR link | None |
+
+### Developer Checkpoints
+
+The extension pauses for your input at two key points:
+
+1. **Plan approval** (Step 3) — You must approve the plan before any code is written. You can provide feedback to revise it.
+2. **Critical findings** (Step 5) — If the security review finds CRITICAL issues, the extension stops and asks how you want to proceed.
+
+## Configuration
+
+### Extension Settings
+
+Settings are managed via Gemini CLI:
+
+```bash
+# View current settings
+gemini extensions list
+
+# Update a setting
+gemini extensions config jira-autofix "GitHub Personal Access Token"
+
+# Update for a specific workspace
+gemini extensions config jira-autofix "GitHub Personal Access Token" --scope workspace
+```
+
+### GitHub Token Scopes
+
+The minimum required scope for your GitHub PAT is `repo`. This grants:
+- Read access to repository contents
+- Write access to create branches, push commits, and open PRs
+
+### Atlassian OAuth
+
+The Atlassian MCP server uses OAuth 2.1 with browser-based consent. On first use:
+1. A browser window opens to `atlassian.com`
+2. Sign in with your Atlassian account
+3. Grant the requested permissions
+4. The token is cached locally by `mcp-remote` in `~/.mcp-auth`
+
+To connect to a specific Atlassian tenant, you can customize the MCP server config in your `~/.gemini/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "atlassian": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://mcp.atlassian.com/v1/sse",
+        "--resource",
+        "https://myorg.atlassian.net/"
+      ]
+    }
+  }
+}
+```
+
+## Development
+
+To develop this extension locally:
+
+```bash
+git clone https://github.com/weitzer-org/jira-autofix-extension
+cd jira-autofix-extension
+gemini extensions link .
+```
+
+Changes to `GEMINI.md`, `gemini-extension.json`, and `commands/jira-autofix.toml` are reflected immediately — no reinstall needed.
+
+## File Structure
+
+```
+jira-autofix-extension/
+├── gemini-extension.json        # Extension manifest (MCP servers, settings)
+├── GEMINI.md                    # Model context loaded every session
+├── README.md                    # This file
+└── commands/
+    └── jira-autofix.toml        # Main command prompt
+```
+
+---
+
+## Workflow Details
 
 ### Step 1: Provide Jira Ticket
 The developer invokes the command and provides a link (or key) to a Jira ticket:
@@ -17,102 +160,48 @@ The developer invokes the command and provides a link (or key) to a Jira ticket:
 ```
 
 ### Step 2: Fetch Jira Issue Context
-The extension uses the **Jira MCP server** to:
+The extension uses the **Atlassian MCP server** to:
 - Retrieve the issue summary, description, acceptance criteria, and comments
 - Fetch linked/related issues (parent epics, blockers, subtasks) for additional context
 - Identify relevant labels, components, and priority
 
 ### Step 3: Provide GitHub Repository
 The developer specifies the GitHub repository associated with the issue:
-- Can be provided as a command argument, or
-- The extension prompts the developer to provide the repo URL
-- Example: `https://github.com/myorg/my-service`
+- If already inside the repo, the extension detects it and confirms
+- Otherwise, the developer provides the repo URL
+- The extension clones the repo and checks out the default branch
 
-### Step 4: Clone Repository Locally
-The extension:
-- Clones the GitHub repo into a local working directory
-- Checks out the default branch (e.g., `main`)
-- Ensures the workspace is clean and ready for changes
-
-### Step 5: Create & Approve Fix Plan
+### Step 4: Create & Approve Fix Plan
 The Gemini model:
 - Analyzes the Jira issue context alongside the codebase
 - Produces a structured plan detailing which files to change, what logic to add/modify, and why
 - Presents the plan to the developer for review
 - The developer **approves** the plan or **provides feedback** to revise it
-- This loop repeats until the developer is satisfied
 
-### Step 6: Implement the Fix
+### Step 5: Implement the Fix
 After plan approval, the Gemini model:
 - Makes the code changes described in the approved plan
 - Runs any available test suites to validate the fix
 - Reports results back to the developer
 
-### Step 7: Run Security & Code Review
-The extension leverages the **security** and **code-review** extensions (or equivalent built-in analysis) to:
-- Scan the diff for security vulnerabilities (injection, secrets, weak crypto, etc.)
-- Review the code changes for bugs, performance issues, and maintainability concerns
-- Present findings to the developer; critical issues block progression
+### Step 6: Run Security & Code Review
+The extension performs inline analysis of the diff to:
+- Scan for security vulnerabilities (injection, secrets, weak crypto, etc.)
+- Review code changes for bugs, performance issues, and maintainability
+- Present findings classified as CRITICAL, HIGH, MEDIUM, or LOW
+- Critical findings block progression until the developer responds
 
-### Step 8: Create Branch & Pull Request
+### Step 7: Create Branch & Pull Request
 Using the **GitHub MCP server**, the extension:
-- Creates a new feature branch (e.g., `fix/PROJ-1234-short-description`)
+- Creates a feature branch (e.g., `fix/PROJ-1234-short-description`)
 - Commits all changes with a descriptive message referencing the Jira ticket
-- Pushes the branch to the remote
-- Opens a pull request with:
-  - Title referencing the Jira issue key
-  - Body containing the fix summary, link to the Jira ticket, and review notes
+- Pushes the branch and opens a pull request with a structured body
 
-### Step 9: Update Jira Ticket
-Using the **Jira MCP server**, the extension posts a comment back to the original Jira issue containing:
+### Step 8: Update Jira Ticket
+Using the **Atlassian MCP server**, the extension posts a comment on the Jira issue with:
 - A summary of what was fixed
 - A link to the GitHub pull request
-- The review results (security + code review status)
-
----
-
-## Requirements
-
-### External Dependencies (MCP Servers)
-
-| MCP Server | Purpose | Used In |
-|---|---|---|
-| **Jira MCP Server** | Fetch issue details, linked issues, post comments | Steps 2, 9 |
-| **GitHub MCP Server** | Create branches, push commits, open PRs | Step 8 |
-
-### Extension Dependencies
-
-| Extension | Purpose | Used In |
-|---|---|---|
-| **security** (`gemini-cli-extensions/security`) | Vulnerability scanning of code changes | Step 7 |
-| **code-review** (`gemini-cli-extensions/code-review`) | Code quality review of changes | Step 7 |
-
-### Extension Components
-
-| Component | Description |
-|---|---|
-| `gemini-extension.json` | Manifest declaring MCP servers and context file |
-| `GEMINI.md` | Context instructions for the model during sessions |
-| `commands/jira-autofix.toml` | Main command defining the orchestration prompt |
-| `mcp-server/` | (If needed) Custom MCP tools for cloning repos, running tests, etc. |
-
----
-
-## Architecture
-
-```
-jira-autofix-extension/
-├── gemini-extension.json        # Extension manifest
-├── GEMINI.md                    # Model context & instructions
-├── README.md                    # This file
-├── commands/
-│   └── jira-autofix.toml        # Main orchestration command
-└── mcp-server/                  # Optional: custom tooling
-    ├── package.json
-    ├── tsconfig.json
-    └── src/
-        └── index.ts
-```
+- The security and code review status
 
 ---
 
@@ -159,15 +248,23 @@ Developer          Gemini CLI           Jira MCP          GitHub MCP
 
 ---
 
-## Decisions Made
+## Design Decisions
 
-1. **Jira MCP Server** — Official Atlassian remote MCP server (`atlassian/atlassian-mcp-server`) via `npx mcp-remote`. Uses OAuth 2.1 browser flow — no API tokens to manage.
-2. **GitHub MCP Server** — Official `github/github-mcp-server` via Docker. PAT-based auth stored securely via Gemini CLI extension settings (`sensitive: true` → OS keychain).
-3. **Authentication** — Jira: zero-config OAuth. GitHub: single PAT prompted at install time, stored in system keychain.
+| Decision | Choice | Rationale |
+|---|---|---|
+| Jira MCP server | Official Atlassian (`atlassian/atlassian-mcp-server`) | OAuth 2.1 — no API tokens to manage |
+| GitHub MCP server | Official (`github/github-mcp-server`) via Docker | Maintained by GitHub, broadest tool support |
+| Jira auth | OAuth 2.1 browser flow | Zero-config for the user |
+| GitHub auth | PAT via extension settings (`sensitive: true`) | Stored in OS keychain |
+| Repo handling | Detect local repo or clone | Avoids unnecessary cloning |
+| Test execution | Auto-detect and run | Reports results but does not block |
+| Security/Code review | Bundled inline prompts | No extra extension dependencies |
+| Branch naming | `fix/<issue-key>-<description>` | Consistent convention for all issue types |
+| Jira updates | Comment only | Less risky than status transitions |
+| PR reviewers | Not auto-assigned | Left to the developer |
+| Failure handling | Pause and present | Developer decides how to proceed |
+| Issue types | All types supported | Workflow is the same regardless |
 
-## Open Questions
+## License
 
-1. **Repo cloning** — Should we use a built-in shell tool (`git clone`) or a custom MCP tool for cloning?
-2. **Test execution** — Should the extension automatically detect and run tests, or leave that to the developer?
-3. **Security/Code Review** — Should we depend on the existing extensions, or bundle equivalent prompts inline?
-4. **Scope** — Should the command support providing both the Jira ticket and repo URL as arguments, or always prompt interactively?
+Apache-2.0
