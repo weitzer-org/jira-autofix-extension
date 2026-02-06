@@ -16,7 +16,29 @@ The Jira Autofix extension provides a single command (`/jira-autofix`) that orch
 - A **GitHub Personal Access Token** with `repo` scope — [create one here](https://github.com/settings/tokens)
 - An **Atlassian Cloud** account (Jira) — OAuth login will be handled via browser
 
-## Installation
+## Installing Gemini CLI
+
+If you don't have Gemini CLI installed yet:
+
+```bash
+# Install via npm (requires Node.js 18+)
+npm install -g @anthropic-ai/gemini-cli
+
+# Or install via the official installer
+curl -fsSL https://cli.gemini.google.dev/install.sh | bash
+```
+
+Verify the installation:
+
+```bash
+gemini --version
+```
+
+For detailed instructions, see the [Gemini CLI Getting Started guide](https://github.com/google-gemini/gemini-cli#getting-started).
+
+## Installing This Extension
+
+### Step 1: Install the extension
 
 ```bash
 gemini extensions install https://github.com/weitzer-org/jira-autofix-extension
@@ -28,7 +50,33 @@ During installation you will be prompted for:
 |---|---|
 | **GitHub Personal Access Token** | A PAT with `repo` scope. Input is masked and stored in your OS keychain. |
 
+### Step 2: Verify the extension is installed
+
+```bash
+gemini extensions list
+```
+
+You should see `jira-autofix` in the list of installed extensions.
+
+### Step 3: First run — Atlassian OAuth
+
 The first time you run the extension, a browser window will open for **Atlassian OAuth** — sign in and grant access to your Jira instance. This is a one-time setup.
+
+### Managing the extension
+
+```bash
+# Update to the latest version
+gemini extensions update jira-autofix
+
+# Uninstall
+gemini extensions uninstall jira-autofix
+
+# Temporarily disable
+gemini extensions disable jira-autofix
+
+# Re-enable
+gemini extensions enable jira-autofix
+```
 
 ## Usage
 
@@ -153,51 +201,45 @@ jira-autofix-extension/
 
 ## Workflow Details
 
-### Step 1: Provide Jira Ticket
-The developer invokes the command and provides a link (or key) to a Jira ticket:
-```
-/jira-autofix https://myorg.atlassian.net/browse/PROJ-1234
-```
-
-### Step 2: Fetch Jira Issue Context
+### Step 1: Fetch Jira Issue Context
 The extension uses the **Atlassian MCP server** to:
 - Retrieve the issue summary, description, acceptance criteria, and comments
 - Fetch linked/related issues (parent epics, blockers, subtasks) for additional context
 - Identify relevant labels, components, and priority
 
-### Step 3: Provide GitHub Repository
+### Step 2: Set Up Repository
 The developer specifies the GitHub repository associated with the issue:
 - If already inside the repo, the extension detects it and confirms
 - Otherwise, the developer provides the repo URL
 - The extension clones the repo and checks out the default branch
 
-### Step 4: Create & Approve Fix Plan
+### Step 3: Plan the Fix
 The Gemini model:
 - Analyzes the Jira issue context alongside the codebase
 - Produces a structured plan detailing which files to change, what logic to add/modify, and why
 - Presents the plan to the developer for review
 - The developer **approves** the plan or **provides feedback** to revise it
 
-### Step 5: Implement the Fix
+### Step 4: Implement the Fix
 After plan approval, the Gemini model:
 - Makes the code changes described in the approved plan
 - Runs any available test suites to validate the fix
 - Reports results back to the developer
 
-### Step 6: Run Security & Code Review
+### Step 5: Review Changes
 The extension performs inline analysis of the diff to:
 - Scan for security vulnerabilities (injection, secrets, weak crypto, etc.)
 - Review code changes for bugs, performance issues, and maintainability
 - Present findings classified as CRITICAL, HIGH, MEDIUM, or LOW
 - Critical findings block progression until the developer responds
 
-### Step 7: Create Branch & Pull Request
+### Step 6: Open Pull Request
 Using the **GitHub MCP server**, the extension:
 - Creates a feature branch (e.g., `fix/PROJ-1234-short-description`)
 - Commits all changes with a descriptive message referencing the Jira ticket
 - Pushes the branch and opens a pull request with a structured body
 
-### Step 8: Update Jira Ticket
+### Step 7: Update Jira
 Using the **Atlassian MCP server**, the extension posts a comment on the Jira issue with:
 - A summary of what was fixed
 - A link to the GitHub pull request

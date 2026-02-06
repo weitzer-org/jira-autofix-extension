@@ -45,10 +45,10 @@ Given a Jira ticket (and optionally a GitHub repository), execute the full fix l
 
 5. Clone or prepare the repository:
    - If the developer confirmed the current directory, skip cloning.
-   - Otherwise, clone the repo: `git clone <repo-url> /tmp/jira-autofix/<issue-key>` and change to that directory.
+   - Otherwise, clone the repo into a unique temporary directory: `git clone <repo-url> $(mktemp -d)/jira-autofix-<issue-key>` and change to that directory.
    - Ensure the workspace is clean: `git status`
-   - Check out the default branch: `git checkout main || git checkout master`
-   - Pull latest: `git pull`
+   - Detect the default branch: `git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, try `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`. Use the result for all subsequent references to the default branch.
+   - Check out the default branch and pull latest: `git checkout <default-branch> && git pull`
 
 ## Phase 3: Plan the Fix
 
@@ -85,8 +85,8 @@ Given a Jira ticket (and optionally a GitHub repository), execute the full fix l
 ## Phase 4: Implement the Fix
 
 9. Create a feature branch:
+   - Derive a short description from the issue title: lowercase, replace spaces and special characters with hyphens, strip any characters that are not alphanumeric or hyphens, collapse consecutive hyphens, trim to max 50 characters.
    - `git checkout -b fix/<issue-key>-<short-description>`
-   - The short description should be a kebab-case summary derived from the issue title (max 50 chars).
 
 10. Implement the code changes as described in the approved plan:
     - Make each change carefully, following existing code conventions.
@@ -100,7 +100,7 @@ Given a Jira ticket (and optionally a GitHub repository), execute the full fix l
 
 ## Phase 5: Security & Code Review
 
-12. **Security Review** — Analyze the diff (`git diff main...HEAD` or `git diff master...HEAD`) for:
+12. **Security Review** — Analyze the diff (`git diff <default-branch>...HEAD`) for:
     - Hardcoded secrets (API keys, passwords, tokens, credentials)
     - Injection vulnerabilities (SQL injection, XSS, command injection, SSRF)
     - Weak or broken cryptography
@@ -126,7 +126,7 @@ Given a Jira ticket (and optionally a GitHub repository), execute the full fix l
 ## Phase 6: Create Pull Request
 
 15. Commit all changes:
-    - `git add -A`
+    - Stage only the specific files that were modified as part of the fix: `git add <file1> <file2> ...`. Do NOT use `git add -A` or `git add .` to avoid accidentally staging unrelated or sensitive files.
     - Commit with a message: `fix(<issue-key>): <short summary of the fix>`
 
 16. Use the GitHub MCP server to push and create the PR:
