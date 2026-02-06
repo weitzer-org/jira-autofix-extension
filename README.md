@@ -63,6 +63,12 @@ Using the **GitHub MCP server**, the extension:
   - Title referencing the Jira issue key
   - Body containing the fix summary, link to the Jira ticket, and review notes
 
+### Step 9: Update Jira Ticket
+Using the **Jira MCP server**, the extension posts a comment back to the original Jira issue containing:
+- A summary of what was fixed
+- A link to the GitHub pull request
+- The review results (security + code review status)
+
 ---
 
 ## Requirements
@@ -71,7 +77,7 @@ Using the **GitHub MCP server**, the extension:
 
 | MCP Server | Purpose | Used In |
 |---|---|---|
-| **Jira MCP Server** | Fetch issue details, linked issues, comments | Step 2 |
+| **Jira MCP Server** | Fetch issue details, linked issues, post comments | Steps 2, 9 |
 | **GitHub MCP Server** | Create branches, push commits, open PRs | Step 8 |
 
 ### Extension Dependencies
@@ -141,18 +147,27 @@ Developer          Gemini CLI           Jira MCP          GitHub MCP
     │<─────────────────│                    │                  │
     │                  │  create branch+PR  │                  │
     │                  │──────────────────────────────────────>│
-    │  PR link         │                    │                  │
+    │                  │  PR link           │                  │
+    │                  │<──────────────────────────────────────│
+    │                  │  post comment      │                  │
+    │                  │───────────────────>│                  │
+    │                  │  confirmed         │                  │
+    │                  │<───────────────────│                  │
+    │  done + PR link  │                    │                  │
     │<─────────────────│                    │                  │
 ```
 
 ---
 
+## Decisions Made
+
+1. **Jira MCP Server** — Official Atlassian remote MCP server (`atlassian/atlassian-mcp-server`) via `npx mcp-remote`. Uses OAuth 2.1 browser flow — no API tokens to manage.
+2. **GitHub MCP Server** — Official `github/github-mcp-server` via Docker. PAT-based auth stored securely via Gemini CLI extension settings (`sensitive: true` → OS keychain).
+3. **Authentication** — Jira: zero-config OAuth. GitHub: single PAT prompted at install time, stored in system keychain.
+
 ## Open Questions
 
-1. **Jira MCP Server** — Which Jira MCP server implementation should we use? (e.g., community MCP server, or build a thin wrapper?)
-2. **GitHub MCP Server** — Same question for GitHub. (There is an official `@github` MCP server.)
-3. **Repo cloning** — Should we use a built-in shell tool (`git clone`) or a custom MCP tool for cloning?
-4. **Test execution** — Should the extension automatically detect and run tests, or leave that to the developer?
-5. **Security/Code Review** — Should we depend on the existing extensions, or bundle equivalent prompts inline?
-6. **Authentication** — How should Jira and GitHub credentials be handled? (Extension settings with `sensitive: true`?)
-7. **Scope** — Should the command support providing both the Jira ticket and repo URL as arguments, or always prompt interactively?
+1. **Repo cloning** — Should we use a built-in shell tool (`git clone`) or a custom MCP tool for cloning?
+2. **Test execution** — Should the extension automatically detect and run tests, or leave that to the developer?
+3. **Security/Code Review** — Should we depend on the existing extensions, or bundle equivalent prompts inline?
+4. **Scope** — Should the command support providing both the Jira ticket and repo URL as arguments, or always prompt interactively?
