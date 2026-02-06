@@ -1,0 +1,1 @@
+# jira-autofix-extension
