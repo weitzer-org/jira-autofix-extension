@@ -67,6 +67,16 @@ gemini extensions list
 
 You should see `jira-autofix` in the list of installed extensions and it should be connected to both GitHub and Jira (via Docker).
 
+### Debug Mode
+
+If you encounter issues or want to see exactly what the extension is doing, you can run it with the `--debug` flag:
+
+```bash
+/jira-autofix <JIRA-URL> --debug
+```
+
+This will print detailed logs (prefixed with `🐛 [DEBUG]:`) before every tool execution.
+
 ### Managing the extension
 
 ```bash
