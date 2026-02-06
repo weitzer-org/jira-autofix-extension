@@ -68,7 +68,7 @@
       "name": "Jira API Token",
       "description": "Jira API Token (create at https://id.atlassian.com/manage-profile/security/api-tokens)",
       "envVar": "JIRA_API_TOKEN",
-      "sensitive": true
+      "sensitive": false
     }
   ]
 }
