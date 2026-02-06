@@ -29,6 +29,9 @@
       }
     }
   },
+  "prompts": {
+    "jira-autofix": "commands/jira-autofix.toml"
+  },
   "settings": [
     {
       "name": "GitHub Personal Access Token",
