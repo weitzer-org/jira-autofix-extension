@@ -17,9 +17,15 @@ Given a Jira ticket (and optionally a GitHub repository), execute the full fix l
 
 <INSTRUCTIONS>
 
+**Debug Mode Instructions**:
+If **Debug Mode** is enabled (user passed `--debug`), you must PRINT a debug line BEFORE every single Tool Call or Shell Command you execute.
+Format: `🐛 [DEBUG]: <Checking condition X / Preparing to run tool Y with args Z>`
+This is critical to help the user understand what you are doing.
+
 ## Phase 1: Gather Jira Context
 
-1. Parse the Jira ticket from the user's input: `{{args}}`
+1. Parse the user's input `{{args}}`:
+   - Check for the `--debug` flag. If present, enable **Debug Mode**.
    - If a full URL is provided (e.g., `https://myorg.atlassian.net/browse/PROJ-1234`), extract the issue key (`PROJ-1234`).
    - If just a key is provided (e.g., `PROJ-1234`), use it directly.
    - If no ticket is provided, ask the user for the Jira ticket URL or key.
