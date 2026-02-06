@@ -48,7 +48,7 @@ During installation you will be prompted for:
 
 | Prompt | What to enter |
 |---|---|
-| **GitHub Personal Access Token** | A PAT with `repo` scope. Input is masked and stored in your OS keychain. |
+| **GitHub Personal Access Token** | A PAT with `repo` scope. **Warning**: Input is stored in plain text in your config file. |
 
 ### Step 2: Verify the extension is installed
 
@@ -141,6 +141,9 @@ gemini extensions config jira-autofix "GitHub Personal Access Token"
 # Update for a specific workspace
 gemini extensions config jira-autofix "GitHub Personal Access Token" --scope workspace
 ```
+
+> [!WARNING]
+> The **GitHub Personal Access Token** is stored in plain text in your `~/.gemini/extensions/settings.json` (or workspace settings). Ensure this file is not shared or committed to version control.
 
 ### GitHub Token Scopes
 
@@ -297,7 +300,7 @@ Developer          Gemini CLI           Jira MCP          GitHub MCP
 | Jira MCP server | Official Atlassian (`atlassian/atlassian-mcp-server`) | OAuth 2.1 — no API tokens to manage |
 | GitHub MCP server | Official (`github/github-mcp-server`) via Docker | Maintained by GitHub, broadest tool support |
 | Jira auth | OAuth 2.1 browser flow | Zero-config for the user |
-| GitHub auth | PAT via extension settings (`sensitive: true`) | Stored in OS keychain |
+| GitHub auth | PAT via extension settings (`sensitive: false`) | Stored in extension config (plain text) |
 | Repo handling | Detect local repo or clone | Avoids unnecessary cloning |
 | Test execution | Auto-detect and run | Reports results but does not block |
 | Security/Code review | Bundled inline prompts | No extra extension dependencies |
