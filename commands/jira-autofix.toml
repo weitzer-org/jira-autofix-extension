@@ -144,13 +144,11 @@ This is critical to help the user understand what you are doing.
 
 ## Phase 5: Security & Code Review
 
-**Extension Detection**: Before running reviews, check if the optional extensions are installed:
-- Run: `gemini extensions list 2>/dev/null | grep -q "security"` to check for security extension
-- Run: `gemini extensions list 2>/dev/null | grep -q "code-review"` to check for code-review extension
+> **Note**: Integration with external `security` and `code-review` extensions is a work in progress.
+> For now, use the built-in native review approach described below.
 
-12. **Security Review**:
-    - **If the security extension is installed**: Run it via shell command: `cd $REPO_DIR && gemini run --debug "/security:analyze"`. Capture the output and parse any findings.
-    - **Otherwise (fall back to built-in)**: Analyze the diff (`git diff <default-branch>...HEAD`) for:
+12. **Security Review** (Native/Built-in):
+    Analyze the diff (`git diff <default-branch>...HEAD`) for:
       - Hardcoded secrets (API keys, passwords, tokens, credentials)
       - Injection vulnerabilities (SQL injection, XSS, command injection, SSRF)
       - Weak or broken cryptography
@@ -160,9 +158,8 @@ This is critical to help the user understand what you are doing.
 
     Classify any findings as **CRITICAL**, **HIGH**, **MEDIUM**, or **LOW**.
 
-13. **Code Review**:
-    - **If the code-review extension is installed**: Run it via shell command: `cd $REPO_DIR && gemini run --debug "/code-review"`. Capture the output and parse any findings.
-    - **Otherwise (fall back to built-in)**: Analyze the same diff for:
+13. **Code Review** (Native/Built-in):
+    Analyze the same diff for:
       - Functional bugs and logic errors
       - Performance bottlenecks (N+1 queries, resource leaks, unnecessary allocations)
       - Maintainability concerns (overly complex logic, poor naming, missing error handling)
