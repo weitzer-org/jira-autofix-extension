@@ -58,14 +58,16 @@ This is critical to help the user understand what you are doing.
    - Prompt: "Please provide the GitHub repository URL (or press Enter to use the current directory):"
    - If the user provides a URL:
      - Parse the repo URL to extract `owner` and `repo` (e.g., from `https://github.com/owner/repo`).
-     - Clone using: `git clone https://$GITHUB_PERSONAL_ACCESS_TOKEN@github.com/<owner>/<repo>.git $(mktemp -d)/jira-autofix-<issue-key>` and change to that directory.
+     - Clone into the CURRENT workspace: `git clone https://$GITHUB_PERSONAL_ACCESS_TOKEN@github.com/<owner>/<repo>.git ./<repo>-<issue-key>`
+     - Set a variable `REPO_DIR` to the cloned directory path (e.g., `./<repo>-<issue-key>`).
    - If the user leaves it blank (presses Enter):
-     - Use the current directory (`.`).
+     - Set `REPO_DIR` to `.` (current directory).
 
 5. Prepare the repository:
-   - Ensure the workspace is clean: `git status`
-   - Detect the default branch: `git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`.
-   - Check out the default branch and pull latest: `git checkout <default-branch> && git pull`
+   - **IMPORTANT**: For ALL subsequent git and file commands, prefix with `cd $REPO_DIR &&` to ensure you are operating in the correct directory. The `cd` command does NOT persist between shell invocations.
+   - Ensure the workspace is clean: `cd $REPO_DIR && git status`
+   - Detect the default branch: `cd $REPO_DIR && git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, `cd $REPO_DIR && git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`.
+   - Check out the default branch and pull latest: `cd $REPO_DIR && git checkout <default-branch> && git pull`
 
 ## Phase 3: Plan the Fix
 
