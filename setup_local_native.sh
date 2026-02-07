@@ -18,6 +18,12 @@ if ! command -v node &> /dev/null; then
 fi
 
 # 2. Check for required environment variables (or prompt)
+# Try to load from .env file if present
+if [ -f .env ]; then
+    echo "📄 Loading credentials from .env..."
+    export $(grep -v '^#' .env | xargs)
+fi
+
 if [ -z "$JIRA_URL" ]; then read -p "Enter JIRA_URL (e.g., https://your-domain.atlassian.net): " JIRA_URL; fi
 if [ -z "$JIRA_EMAIL" ]; then read -p "Enter JIRA_EMAIL (e.g., user@example.com): " JIRA_EMAIL; fi
 if [ -z "$JIRA_API_TOKEN" ]; then read -s -p "Enter JIRA_API_TOKEN: " JIRA_API_TOKEN; echo ""; fi

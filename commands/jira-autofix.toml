@@ -9,6 +9,10 @@ You are effectively the implementation of the `/jira-autofix` command.
 Do NOT attempt to call a tool definition for `jira-autofix` or `/jira-autofix`—such a tool does not exist.
 Do NOT use `delegate_to_agent`. You must perform the actions yourself.
 Instead, you must EXECUTE the logic defined in the <INSTRUCTIONS> section below yourself, using the primitive tools available (Atlassian & GitHub MCP tools) and shell commands.
+
+**Tool Naming Guideline**:
+- **GitHub MCP Tools**: Do NOT use namespaces or prefixes. Use the tool name exactly as listed (e.g., use `create_pull_request`, NOT `github.create_pull_request`).
+- **Atlassian MCP Tools**: Use the `jira_` prefix as it is part of the tool name (e.g., `jira_get_issue`).
 </META_INSTRUCTIONS>
 
 <OBJECTIVE>
@@ -51,15 +55,23 @@ This is critical to help the user understand what you are doing.
 ## Phase 2: Set Up the Repository
 
 4. Determine the GitHub repository:
-   - **CRITICAL**: Do NOT scan the filesystem (e.g., `find`, `ls`) to "find" a repository.
-   - **ALWAYS** ask the user for the GitHub repository URL. Do not attempt to use the current directory.
-   - Prompt: "Please provide the GitHub repository URL for this issue:"
+   - **CRITICAL**: Do NOT scan the filesystem indiscriminately.
+   - First, check if the current directory is the correct repository:
+     - Run `git remote get-url origin` (ignore errors).
+     - If the remote URL matches a repository relevant to the issue (e.g., from your knowledge or a user hint), ask: "It looks like you are already in the repository [URL]. Use the current directory? (Y/n)"
+     - If yes, proceed using the current directory (`.`).
+   - If not in the repo or user says "n":
+     - Ask the user for the GitHub repository URL.
+     - Prompt: "Please provide the GitHub repository URL for this issue:"
 
-5. Clone the repository:
-   - Clone the repo into a unique temporary directory: `git clone <repo-url> $(mktemp -d)/jira-autofix-<issue-key>` and change to that directory.
-   - Ensure the workspace is clean: `git status`
-   - Detect the default branch: `git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, try `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`. Use the result for all subsequent references to the default branch.
-   - Check out the default branch and pull latest: `git checkout <default-branch> && git pull`
+5. Clone the repository (if not using current directory):
+   - If the user elected to use the current directory, **SKIP** this cloning step.
+   - Otherwise:
+     - Clone the repo into a unique temporary directory: `git clone <repo-url> $(mktemp -d)/jira-autofix-<issue-key>` and change to that directory.
+   - For both cases (current dir or clone):
+     - Ensure the workspace is clean: `git status`
+     - Detect the default branch: `git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`.
+     - Check out the default branch and pull latest: `git checkout <default-branch> && git pull`
 
 ## Phase 3: Plan the Fix
 
@@ -185,10 +197,13 @@ This is critical to help the user understand what you are doing.
       - Code review: <PASS or summary of findings>
       ```
 
-19. Confirm to the developer that the workflow is complete:
-    - Display the PR URL
-    - Confirm the Jira comment was posted
-    - Summarize what was done
+19. Confirm to the developer that the workflow is complete by printing a structured summary:
+    - You must output a markdown block titled `## 🚀 Execution Summary` containing:
+      - **Jira Issue**: Link to the issue.
+      - **Pull Request**: Link to the created PR.
+      - **Status**: "Comment posted to Jira"
+      - **Next Steps**: "Please review and merge the PR."
+    - Do not just say "I'm done". You must provide this summary artifact.
 
 </INSTRUCTIONS>
 
