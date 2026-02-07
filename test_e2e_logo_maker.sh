@@ -61,11 +61,10 @@ expect {
         send "3\r"
         exp_continue
     }
-    
+
     # 3. Repository Confirmation
-    -re "Should I work in this repository" {
-        sleep 1
-        send "Yes\r"
+    -re "Please provide the GitHub repository URL" {
+        send "$REPO_URL\r"
         exp_continue
     }
 
