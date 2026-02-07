@@ -54,26 +54,18 @@ This is critical to help the user understand what you are doing.
 
 ## Phase 2: Set Up the Repository
 
-4. Determine the GitHub repository:
-   - **CRITICAL**: Do NOT scan the filesystem indiscriminately.
-   - First, check if the current directory is the correct repository:
-     - Run `git remote get-url origin` (ignore errors).
-     - If the remote URL matches a repository relevant to the issue (e.g., from your knowledge or a user hint), ask: "It looks like you are already in the repository [URL]. Use the current directory? (Y/n)"
-     - If yes, proceed using the current directory (`.`).
-   - If not in the repo or user says "n":
-     - Ask the user for the GitHub repository URL.
-     - Prompt: "Please provide the GitHub repository URL for this issue:"
-
-5. Clone the repository (if not using current directory):
-   - If the user elected to use the current directory, **SKIP** this cloning step.
-   - Otherwise, clone the repo using the environment variable `GITHUB_PERSONAL_ACCESS_TOKEN` for authentication:
+4. Ask the user for the GitHub repository:
+   - Prompt: "Please provide the GitHub repository URL (or press Enter to use the current directory):"
+   - If the user provides a URL:
      - Parse the repo URL to extract `owner` and `repo` (e.g., from `https://github.com/owner/repo`).
      - Clone using: `git clone https://$GITHUB_PERSONAL_ACCESS_TOKEN@github.com/<owner>/<repo>.git $(mktemp -d)/jira-autofix-<issue-key>` and change to that directory.
-     - This avoids prompting the user for credentials.
-   - For both cases (current dir or clone):
-     - Ensure the workspace is clean: `git status`
-     - Detect the default branch: `git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`.
-     - Check out the default branch and pull latest: `git checkout <default-branch> && git pull`
+   - If the user leaves it blank (presses Enter):
+     - Use the current directory (`.`).
+
+5. Prepare the repository:
+   - Ensure the workspace is clean: `git status`
+   - Detect the default branch: `git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`.
+   - Check out the default branch and pull latest: `git checkout <default-branch> && git pull`
 
 ## Phase 3: Plan the Fix
 
