@@ -12,6 +12,11 @@ if ! command -v uv &> /dev/null; then
     exit 1
 fi
 
+if ! command -v node &> /dev/null; then
+    echo "❌ 'node' not found. Please install Node.js and ensure it is in your PATH."
+    exit 1
+fi
+
 # 2. Check for required environment variables (or prompt)
 if [ -z "$JIRA_URL" ]; then read -p "Enter JIRA_URL (e.g., https://your-domain.atlassian.net): " JIRA_URL; fi
 if [ -z "$JIRA_EMAIL" ]; then read -p "Enter JIRA_EMAIL (e.g., user@example.com): " JIRA_EMAIL; fi
@@ -50,6 +55,15 @@ fi
 echo "📝 Backing up manifest..."
 cp gemini-extension.json gemini-extension.json.bak
 
+# Ensure we restore the manifest even if something fails
+cleanup() {
+    if [ -f gemini-extension.json.bak ]; then
+        echo "♻️  Restoring original manifest..."
+        mv gemini-extension.json.bak gemini-extension.json
+    fi
+}
+trap cleanup EXIT
+
 echo "🔧 Configuring Manifest for Native Execution..."
 # Node script to rewrite manifest configuration
 # Uses explicit CLI flags for robustness
@@ -63,19 +77,21 @@ node -e '
 const fs = require("fs");
 const manifest = JSON.parse(fs.readFileSync("gemini-extension.json", "utf8"));
 
-const JIRA_URL = process.env.JIRA_URL;
-const JIRA_EMAIL = process.env.JIRA_EMAIL;
-const JIRA_TOKEN = process.env.JIRA_API_TOKEN;
-const PYTHON = process.env.VENV_PYTHON;
-const SCRIPT = process.env.MCP_SCRIPT;
+// Pass secrets and paths via environment variables to prevent shell injection
+manifest.mcpServers.atlassian.env = {
+    "JIRA_URL": process.env.JIRA_URL,
+    "JIRA_USERNAME": process.env.JIRA_EMAIL, // Note: Argument is --jira-username but env var is JIRA_EMAIL
+    "JIRA_TOKEN": process.env.JIRA_API_TOKEN,
+    "VENV_PYTHON": process.env.VENV_PYTHON,
+    "MCP_SCRIPT": process.env.MCP_SCRIPT
+};
 
-// Construct command: python script -v --flags ...
-// We use "sh -c" to wrap the command string execution
-const cmd = `"${PYTHON}" "${SCRIPT}" -v --jira-url "${JIRA_URL}" --jira-username "${JIRA_EMAIL}" --jira-token "${JIRA_TOKEN}"`;
+// Construct command using shell variable expansion
+// arguments reference the environment variables set above
+const cmd = `"$VENV_PYTHON" "$MCP_SCRIPT" -v --jira-url "$JIRA_URL" --jira-username "$JIRA_USERNAME" --jira-token "$JIRA_TOKEN"`;
 
 manifest.mcpServers.atlassian.command = "/bin/sh";
 manifest.mcpServers.atlassian.args = ["-c", cmd];
-manifest.mcpServers.atlassian.env = {}; 
 
 // Remove settings to prevent interactive prompts during verify
 manifest.settings = [];
@@ -87,8 +103,7 @@ echo "📦 Installing extension..."
 # Pipe 'y' to auto-confirm installation
 printf "y\n" | gemini extensions install .
 
-echo "♻️  Restoring original manifest..."
-mv gemini-extension.json.bak gemini-extension.json
+# Cleanup is handled by trap
 
 echo "✅ Setup Complete!"
 echo "To verify: gemini run --debug \"Fetch details for SCRUM-1 using jira_get_issue\""

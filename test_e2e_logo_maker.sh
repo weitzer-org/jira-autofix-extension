@@ -35,7 +35,7 @@ cd "$REPO_DIR" || exit 1
 # Disable colors to simplifying expect matching
 export NO_COLOR=1
 
-/usr/bin/expect <<EOF
+expect <<EOF
 set timeout 600
 spawn $COMMAND
 
@@ -76,12 +76,6 @@ expect {
         exp_continue
     }
 
-    # 4. Plan Approval / Execution
-    # --yolo handles tool calls, but sometimes it asks for overall plan approval
-    "Do you want to proceed*" {
-        send "Yes\r"
-        exp_continue
-    }
     
     # 5. Success / Completion
     "Pull Request created*" {
@@ -98,7 +92,14 @@ expect {
     # 7. EOF (Process exited)
     eof {
         puts "\nℹ️ Process exited."
-        # Check exit status?
+        # Capture exit status
+        catch wait result
+        set exit_code [lindex \$result 3]
+        if {\$exit_code != 0} {
+            puts "\n❌ Process exited with error: \$exit_code"
+            exit \$exit_code
+        }
+        exit 0
     }
 }
 EOF
