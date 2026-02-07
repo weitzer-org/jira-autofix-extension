@@ -44,7 +44,15 @@ For detailed instructions, see the [Gemini CLI Getting Started guide](https://gi
 
 ## Installing This Extension
 
-### Step 1: Install the extension
+### Installing This Extension
+
+You have two options:
+1. **Production / Cloud Shell Usage** (Designated for seamless use with Docker)
+2. **Local Development** (For advanced users iterating on the extension code)
+
+#### Option 1: Production / Cloud Shell (Recommended)
+
+Run this command to install the extension directly from GitHub:
 
 ```bash
 gemini extensions install https://github.com/weitzer-org/jira-autofix-extension
@@ -54,10 +62,34 @@ During installation you will be prompted for:
 
 | Prompt | What to enter |
 |---|---|
-| **GitHub Personal Access Token** | A PAT with `repo` scope. **Warning**: Input is stored in plain text in your config file. |
+| **GitHub Personal Access Token** | A PAT with `repo` scope. |
 | **Jira URL** | Your Jira instance URL (e.g., `https://myorg.atlassian.net`). |
 | **Jira Email** | The email address you use to log in to Jira. |
 | **Jira API Token** | A Jira API token. Create one at [id.atlassian.com](https://id.atlassian.com/manage-profile/security/api-tokens). |
+
+#### Option 2: Local Development (Advanced)
+
+If you are developing the extension locally and want to use your local Python environment (bypassing Docker), follow these steps:
+
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/weitzer-org/jira-autofix-extension
+   cd jira-autofix-extension
+   ```
+
+2. Create a `.env` file (optional, to save typing credentials):
+   ```bash
+   JIRA_URL=https://your-domain.atlassian.net
+   JIRA_EMAIL=user@example.com
+   JIRA_API_TOKEN=your-token
+   GITHUB_PERSONAL_ACCESS_TOKEN=your-pat
+   ```
+
+3. Run the setup script:
+   ```bash
+   ./setup_local_native.sh
+   ```
+   This script will set up a virtual environment, install dependencies, and configure the extension to run natively on your machine using the local code.
 
 ### Step 3: Verify the extension is installed
 
@@ -65,7 +97,7 @@ During installation you will be prompted for:
 gemini extensions list
 ```
 
-You should see `jira-autofix` in the list of installed extensions and it should be connected to both GitHub and Jira (via Docker).
+You should see `jira-autofix` in the list.
 
 ### Debug Mode
 
@@ -75,9 +107,7 @@ If you encounter issues or want to see exactly what the extension is doing, you 
 gemini run jira-autofix "<JIRA-URL> --debug"
 ```
 
-This will print detailed logs (prefixed with `🐛 [DEBUG]:`) before every tool execution, helping you troubleshoot connection or logic issues.
-
-
+This will print detailed logs (prefixed with `🐛 [DEBUG]:`) before every tool execution.
 
 ### Managing the extension
 
@@ -87,19 +117,13 @@ gemini extensions update jira-autofix
 
 # Uninstall
 gemini extensions uninstall jira-autofix
-
-# Temporarily disable
-gemini extensions disable jira-autofix
-
-# Re-enable
-gemini extensions enable jira-autofix
 ```
 
 ## Usage
 
 ### Basic Usage
 
-**Important**: You must use `gemini run` to execute this command. Do NOT use `gemini /jira-autofix` (which sends it as a chat message).
+**Important**: You must use `gemini run` to execute this command.
 
 ```bash
 gemini run jira-autofix "<ISSUE_KEY_OR_URL>"
@@ -110,6 +134,17 @@ Example:
 gemini run jira-autofix "SCRUM-1"
 ```
 
+### From inside a repository
+
+The extension is smart! If you run it from inside the relevant git repository, it will detect the context and ask if you want to use the current directory instead of cloning a fresh copy.
+
+```bash
+cd ~/projects/my-service
+gemini run jira-autofix "PROJ-1234"
+```
+
+If you're **not** inside the repo, the extension will ask you for the GitHub repo URL and clone it automatically.
+
 ### With Debug Mode
 
 To see verbose logs, append the `--debug` flag **inside the quotes**:
@@ -119,7 +154,7 @@ gemini run jira-autofix "SCRUM-1 --debug"
 ```
 
 > [!TIP]
-> If you see an authentication error like `Cannot create property 'refresh_token'`, run this command to refresh your Cloud Shell credentials:
+> **Cloud Shell Users**: If you see an authentication error like `Cannot create property 'refresh_token'`, run this command to refresh your Cloud Shell credentials:
 > ```bash
 > gcloud auth application-default login
 > ```
@@ -132,18 +167,6 @@ Alternatively, start the interactive shell:
 gemini
 > /jira-autofix SCRUM-1 --debug
 ```
-
-### From inside a repository
-
-If you're already `cd`'d into the relevant repo, the extension will detect it and skip cloning:
-
-```
-cd ~/projects/my-service
-gemini
-> /jira-autofix PROJ-1234
-```
-
-If you're **not** inside the repo, the extension will ask you for the GitHub repo URL and clone it automatically.
 
 ## What Happens
 

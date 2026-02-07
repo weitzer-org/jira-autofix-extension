@@ -17,7 +17,10 @@
         "-e",
         "JIRA_API_TOKEN",
         "ghcr.io/sooperset/mcp-atlassian"
-      ]
+      ],
+      "env": {
+        "JIRA_USERNAME": "$JIRA_EMAIL"
+      }
     },
     "github": {
       "command": "docker",
@@ -55,7 +58,7 @@
     {
       "name": "Jira Email",
       "description": "Email address associated with your Jira account",
-      "envVar": "JIRA_USERNAME",
+      "envVar": "JIRA_EMAIL",
       "sensitive": false
     },
     {

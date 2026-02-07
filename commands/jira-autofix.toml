@@ -51,15 +51,23 @@ This is critical to help the user understand what you are doing.
 ## Phase 2: Set Up the Repository
 
 4. Determine the GitHub repository:
-   - **CRITICAL**: Do NOT scan the filesystem (e.g., `find`, `ls`) to "find" a repository.
-   - **ALWAYS** ask the user for the GitHub repository URL. Do not attempt to use the current directory.
-   - Prompt: "Please provide the GitHub repository URL for this issue:"
+   - **CRITICAL**: Do NOT scan the filesystem indiscriminately.
+   - First, check if the current directory is the correct repository:
+     - Run `git remote get-url origin` (ignore errors).
+     - If the remote URL matches a repository relevant to the issue (e.g., from your knowledge or a user hint), ask: "It looks like you are already in the repository [URL]. Use the current directory? (Y/n)"
+     - If yes, proceed using the current directory (`.`).
+   - If not in the repo or user says "n":
+     - Ask the user for the GitHub repository URL.
+     - Prompt: "Please provide the GitHub repository URL for this issue:"
 
-5. Clone the repository:
-   - Clone the repo into a unique temporary directory: `git clone <repo-url> $(mktemp -d)/jira-autofix-<issue-key>` and change to that directory.
-   - Ensure the workspace is clean: `git status`
-   - Detect the default branch: `git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, try `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`. Use the result for all subsequent references to the default branch.
-   - Check out the default branch and pull latest: `git checkout <default-branch> && git pull`
+5. Clone the repository (if not using current directory):
+   - If the user elected to use the current directory, **SKIP** this cloning step.
+   - Otherwise:
+     - Clone the repo into a unique temporary directory: `git clone <repo-url> $(mktemp -d)/jira-autofix-<issue-key>` and change to that directory.
+   - For both cases (current dir or clone):
+     - Ensure the workspace is clean: `git status`
+     - Detect the default branch: `git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`.
+     - Check out the default branch and pull latest: `git checkout <default-branch> && git pull`
 
 ## Phase 3: Plan the Fix
 
