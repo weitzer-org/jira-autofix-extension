@@ -13,14 +13,14 @@
         "-e",
         "JIRA_URL",
         "-e",
-        "JIRA_EMAIL",
+        "JIRA_USERNAME",
         "-e",
         "JIRA_API_TOKEN",
         "ghcr.io/sooperset/mcp-atlassian"
       ],
       "env": {
         "JIRA_URL": "$JIRA_URL",
-        "JIRA_EMAIL": "$JIRA_EMAIL",
+        "JIRA_USERNAME": "$JIRA_EMAIL",
         "JIRA_API_TOKEN": "$JIRA_API_TOKEN"
       }
     },
