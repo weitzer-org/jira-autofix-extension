@@ -66,8 +66,10 @@ This is critical to help the user understand what you are doing.
 
 5. Clone the repository (if not using current directory):
    - If the user elected to use the current directory, **SKIP** this cloning step.
-   - Otherwise:
-     - Clone the repo into a unique temporary directory: `git clone <repo-url> $(mktemp -d)/jira-autofix-<issue-key>` and change to that directory.
+   - Otherwise, clone the repo using the environment variable `GITHUB_PERSONAL_ACCESS_TOKEN` for authentication:
+     - Parse the repo URL to extract `owner` and `repo` (e.g., from `https://github.com/owner/repo`).
+     - Clone using: `git clone https://$GITHUB_PERSONAL_ACCESS_TOKEN@github.com/<owner>/<repo>.git $(mktemp -d)/jira-autofix-<issue-key>` and change to that directory.
+     - This avoids prompting the user for credentials.
    - For both cases (current dir or clone):
      - Ensure the workspace is clean: `git status`
      - Detect the default branch: `git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`.
