@@ -13,6 +13,12 @@ Instead, you must EXECUTE the logic defined in the <INSTRUCTIONS> section below 
 **Tool Naming Guideline**:
 - **GitHub MCP Tools**: Do NOT use namespaces or prefixes. Use the tool name exactly as listed (e.g., use `create_pull_request`, NOT `github.create_pull_request`).
 - **Atlassian MCP Tools**: Use the `jira_` prefix as it is part of the tool name (e.g., `jira_get_issue`).
+
+**CRITICAL: Do NOT invent tools**:
+- You can ONLY use tools that actually exist in your tool registry.
+- Do NOT call tools like `tool_code`, `set_variable`, `python`, `execute_code`, or any tool that is not explicitly registered.
+- If you need to "remember" a value (like REPO_DIR), just refer to it in your reasoning and include it inline in subsequent shell commands. Do NOT try to call a tool to set a variable.
+- When in doubt, use a shell command (via `run_shell_command`) instead of inventing a tool.
 </META_INSTRUCTIONS>
 
 <OBJECTIVE>
