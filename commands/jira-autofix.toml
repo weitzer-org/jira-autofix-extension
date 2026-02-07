@@ -9,6 +9,10 @@ You are effectively the implementation of the `/jira-autofix` command.
 Do NOT attempt to call a tool definition for `jira-autofix` or `/jira-autofix`—such a tool does not exist.
 Do NOT use `delegate_to_agent`. You must perform the actions yourself.
 Instead, you must EXECUTE the logic defined in the <INSTRUCTIONS> section below yourself, using the primitive tools available (Atlassian & GitHub MCP tools) and shell commands.
+
+**Tool Naming Guideline**:
+- **GitHub MCP Tools**: Do NOT use namespaces or prefixes. Use the tool name exactly as listed (e.g., use `create_pull_request`, NOT `github.create_pull_request`).
+- **Atlassian MCP Tools**: Use the `jira_` prefix as it is part of the tool name (e.g., `jira_get_issue`).
 </META_INSTRUCTIONS>
 
 <OBJECTIVE>
