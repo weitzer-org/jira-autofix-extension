@@ -67,6 +67,20 @@ During installation you will be prompted for:
 | **Jira Email** | The email address you use to log in to Jira. |
 | **Jira API Token** | A Jira API token. Create one at [id.atlassian.com](https://id.atlassian.com/manage-profile/security/api-tokens). |
 
+##### Important: Shell Environment Setup (Required for Cloning External Repos)
+
+If your workflow involves cloning repositories (not using the current directory), you must also export the GitHub PAT to your shell environment. This is a one-time setup:
+
+```bash
+# Add to your shell profile (run once)
+echo 'export GITHUB_PERSONAL_ACCESS_TOKEN="your-pat-here"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+> **Why?** The PAT entered during installation is only available to the MCP servers (Docker containers). For git commands like `clone` and `push`, the PAT must also be in the shell environment.
+
+**For Cloud Shell users**: Run the above commands, replacing `your-pat-here` with your actual PAT.
+
 #### Option 2: Local Development (Advanced)
 
 If you are developing the extension locally and want to use your local Python environment (bypassing Docker), follow these steps:
@@ -108,6 +122,20 @@ gemini run jira-autofix "<JIRA-URL> --debug"
 ```
 
 This will print detailed logs (prefixed with `🐛 [DEBUG]:`) before every tool execution.
+
+### Optional: Enhanced Security & Code Review
+
+For improved security scanning and code review, you can install the official Gemini CLI extensions:
+
+```bash
+# Security extension (finds vulnerabilities, dependency scans)
+gemini extensions install https://github.com/gemini-cli-extensions/security
+
+# Code review extension (reviews code quality)
+gemini extensions install https://github.com/gemini-cli-extensions/code-review
+```
+
+If installed, `/jira-autofix` will automatically use these extensions during the review phase. If not installed, it falls back to built-in review.
 
 ### Managing the extension
 
@@ -354,7 +382,7 @@ Developer          Gemini CLI           Jira MCP          GitHub MCP
 | GitHub auth | PAT via extension settings (`sensitive: false`) | Stored in extension config (plain text) |
 | Repo handling | Detect local repo or clone | Avoids unnecessary cloning |
 | Test execution | Auto-detect and run | Reports results but does not block |
-| Security/Code review | Bundled inline prompts | No extra extension dependencies |
+| Security/Code review | Extensions if installed, else built-in | Uses `/security:analyze` and `/code-review` if available |
 | Branch naming | `fix/<issue-key>-<description>` | Consistent convention for all issue types |
 | Jira updates | Comment only | Less risky than status transitions |
 | PR reviewers | Not auto-assigned | Left to the developer |

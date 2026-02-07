@@ -10,13 +10,32 @@ The primary command. Orchestrates the full fix lifecycle for a Jira issue.
 
 When a user wants to fix a Jira issue, resolve a bug, or implement a task from Jira, this command should be the preferred way to do so.
 
+**Usage:**
+- `jira-autofix SCRUM-1` - Use saved repo, auto-detect, or current directory
+- `jira-autofix "SCRUM-1 https://github.com/owner/repo"` - Specify repo explicitly
+
+### /setrepo
+
+Set the default GitHub repository for jira-autofix to use.
+
+**Usage:**
+- `/setrepo https://github.com/owner/repo` - Save a default repository
+- `/setrepo` - Show the currently saved repository
+
+### /clearrepo
+
+Clear the saved default repository.
+
+**Usage:**
+- `/clearrepo` - Remove the saved repository setting
+
 ## MCP Servers Available
 
 ### Atlassian (Jira)
 Use the Atlassian MCP server tools to:
 - Fetch Jira issue details (`jira_get_issue`)
 - Search for related issues (`jira_search`)
-- Get remote links on issues (`jira_get_issue_link_types`)
+- Get remote links on issues (`jira_get_link_types`)
 - Add comments to issues (`jira_add_comment`)
 - Transition issues (`jira_transition_issue`)
 - Create issues (`jira_create_issue`)
@@ -37,3 +56,7 @@ Use the GitHub MCP server tools to:
 - When posting a comment back to Jira, include a link to the PR and a brief summary of the changes made.
 - Do not transition Jira ticket status — only add comments.
 - If the developer is already inside the target repository, skip the clone step.
+
+## Known Limitations / TODO
+
+- **Interactive prompts**: Gemini CLI doesn't have a reliable mechanism for the agent to pause and wait for user input mid-execution. Workaround: use `/setrepo` to pre-configure the repo, or pass it as argument.

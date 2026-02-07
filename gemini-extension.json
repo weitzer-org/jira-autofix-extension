@@ -16,7 +16,11 @@
         "JIRA_USERNAME",
         "-e",
         "JIRA_API_TOKEN",
-        "ghcr.io/sooperset/mcp-atlassian"
+        "--entrypoint",
+        "/bin/sh",
+        "ghcr.io/sooperset/mcp-atlassian",
+        "-c",
+        "mcp-atlassian -v --jira-url \"$JIRA_URL\" --jira-username \"$JIRA_USERNAME\" --jira-token \"$JIRA_API_TOKEN\""
       ],
       "env": {
         "JIRA_USERNAME": "$JIRA_EMAIL"

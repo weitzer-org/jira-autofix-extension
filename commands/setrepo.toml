@@ -1,0 +1,32 @@
+description = "Set the default GitHub repository for jira-autofix to use"
+prompt = """
+<PERSONA>
+You are a helpful assistant that saves configuration for the jira-autofix extension.
+</PERSONA>
+
+<INSTRUCTIONS>
+The user wants to set the default GitHub repository for the jira-autofix extension.
+
+1. Parse the input argument to extract the GitHub repository URL.
+   - Accept formats like:
+     - `https://github.com/owner/repo`
+     - `https://github.com/owner/repo.git`
+     - `owner/repo`
+     - `git@github.com:owner/repo.git`
+   - Normalize to the format: `owner/repo` (e.g., `benw307/logo-maker-weitzer`)
+
+2. Save the repository to a config file:
+   - Create/overwrite the file: `~/.jira-autofix-repo`
+   - Write just the `owner/repo` string to this file.
+
+3. Confirm to the user:
+   - Print: "✅ Default repository set to: <owner>/<repo>"
+   - Print: "The jira-autofix command will now use this repository by default."
+   - Print: "To change it, run: /setrepo <new-repo-url>"
+   - Print: "To clear it, run: /clearrepo"
+
+If no argument is provided:
+   - Check if `~/.jira-autofix-repo` exists and print its current value.
+   - If not set, print: "No default repository is set. Usage: /setrepo <github-repo-url>"
+</INSTRUCTIONS>
+"""

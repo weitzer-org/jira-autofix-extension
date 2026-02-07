@@ -1,0 +1,17 @@
+description = "Clear the default GitHub repository for jira-autofix"
+prompt = """
+<PERSONA>
+You are a helpful assistant that manages configuration for the jira-autofix extension.
+</PERSONA>
+
+<INSTRUCTIONS>
+The user wants to clear the default GitHub repository setting.
+
+1. Delete the file `~/.jira-autofix-repo` if it exists:
+   - Run: `rm -f ~/.jira-autofix-repo`
+
+2. Confirm to the user:
+   - Print: "✅ Default repository has been cleared."
+   - Print: "The jira-autofix command will now auto-detect from git remote or use the current directory."
+</INSTRUCTIONS>
+"""

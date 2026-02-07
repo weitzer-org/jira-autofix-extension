@@ -13,6 +13,12 @@ Instead, you must EXECUTE the logic defined in the <INSTRUCTIONS> section below 
 **Tool Naming Guideline**:
 - **GitHub MCP Tools**: Do NOT use namespaces or prefixes. Use the tool name exactly as listed (e.g., use `create_pull_request`, NOT `github.create_pull_request`).
 - **Atlassian MCP Tools**: Use the `jira_` prefix as it is part of the tool name (e.g., `jira_get_issue`).
+
+**CRITICAL: Do NOT invent tools**:
+- You can ONLY use tools that actually exist in your tool registry.
+- Do NOT call tools like `tool_code`, `set_variable`, `python`, `execute_code`, or any tool that is not explicitly registered.
+- If you need to "remember" a value (like REPO_DIR), just refer to it in your reasoning and include it inline in subsequent shell commands. Do NOT try to call a tool to set a variable.
+- When in doubt, use a shell command (via `run_shell_command`) instead of inventing a tool.
 </META_INSTRUCTIONS>
 
 <OBJECTIVE>
@@ -42,9 +48,9 @@ This is critical to help the user understand what you are doing.
    - If no ticket is provided, ask the user for the Jira ticket URL or key.
 
 2. Use the Atlassian MCP server to fetch the issue details:
-   - Call `jira_get_issue` with the issue key to retrieve the summary, description, acceptance criteria, comments, priority, labels, and components.
+   - Call `jira_get_issue` with the issue key AND `fields="*all"` to retrieve ALL fields in a single call (summary, description, acceptance criteria, comments, priority, labels, components, etc.).
    - Call `jira_search` with a JQL query to find linked/related issues (e.g., parent epic, blockers, subtasks). Example JQL: `issue in linkedIssues("PROJ-1234") OR parent = "PROJ-1234"`
-   - Call `jira_get_issue_link_types` to check for any linked external resources.
+   - Call `jira_get_link_types` to check for any linked external resources.
 
 3. Summarize what you learned from the Jira context. Present the following to the developer:
    - **Issue**: key, summary, type, priority
@@ -54,24 +60,37 @@ This is critical to help the user understand what you are doing.
 
 ## Phase 2: Set Up the Repository
 
-4. Determine the GitHub repository:
-   - **CRITICAL**: Do NOT scan the filesystem indiscriminately.
-   - First, check if the current directory is the correct repository:
-     - Run `git remote get-url origin` (ignore errors).
-     - If the remote URL matches a repository relevant to the issue (e.g., from your knowledge or a user hint), ask: "It looks like you are already in the repository [URL]. Use the current directory? (Y/n)"
-     - If yes, proceed using the current directory (`.`).
-   - If not in the repo or user says "n":
-     - Ask the user for the GitHub repository URL.
-     - Prompt: "Please provide the GitHub repository URL for this issue:"
+4. Determine the GitHub repository using this priority order:
 
-5. Clone the repository (if not using current directory):
-   - If the user elected to use the current directory, **SKIP** this cloning step.
-   - Otherwise:
-     - Clone the repo into a unique temporary directory: `git clone <repo-url> $(mktemp -d)/jira-autofix-<issue-key>` and change to that directory.
-   - For both cases (current dir or clone):
-     - Ensure the workspace is clean: `git status`
-     - Detect the default branch: `git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`.
-     - Check out the default branch and pull latest: `git checkout <default-branch> && git pull`
+   **Priority 1 - Saved config**: Check if `~/.jira-autofix-repo` exists:
+   - Run: `cat ~/.jira-autofix-repo 2>/dev/null`
+   - If it contains a value (e.g., `owner/repo`), use that as the target repository.
+   - Print: "🐛 [DEBUG]: Using saved repository from /setrepo: <owner>/<repo>"
+
+   **Priority 2 - Command argument**: Check if a second argument was provided after the issue key:
+   - If the input looks like `"SCRUM-1 https://github.com/owner/repo"` or `"SCRUM-1 owner/repo"`, extract the repo.
+   - Print: "🐛 [DEBUG]: Using repository from argument: <owner>/<repo>"
+
+   **Priority 3 - Auto-detect from git remote**: Try to detect the repo from the current directory:
+   - Run: `git remote get-url origin 2>/dev/null`
+   - If this returns a GitHub URL, parse it to extract `owner/repo`.
+   - Print: "🐛 [DEBUG]: Auto-detected repository from git remote: <owner>/<repo>"
+   - In this case, set `REPO_DIR` to `.` (use current directory).
+
+   **Priority 4 - Default to current directory**: If none of the above worked:
+   - Assume the user is already in the correct repo directory.
+   - Set `REPO_DIR` to `.`
+   - Print: "🐛 [DEBUG]: Using current directory as repository."
+
+   **If cloning is needed** (Priorities 1 or 2, and the repo is not the current directory):
+   - Clone into the workspace: `git clone https://$GITHUB_PERSONAL_ACCESS_TOKEN@github.com/<owner>/<repo>.git ./<repo>-<issue-key>`
+   - Set `REPO_DIR` to the cloned directory (e.g., `./<repo>-<issue-key>`).
+
+5. Prepare the repository:
+   - **IMPORTANT**: For ALL subsequent git and file commands, prefix with `cd $REPO_DIR &&` to ensure you are operating in the correct directory. The `cd` command does NOT persist between shell invocations.
+   - Ensure the workspace is clean: `cd $REPO_DIR && git status`
+   - Detect the default branch: `cd $REPO_DIR && git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`. If that fails, `cd $REPO_DIR && git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`.
+   - Check out the default branch and pull latest: `cd $REPO_DIR && git checkout <default-branch> && git pull`
 
 ## Phase 3: Plan the Fix
 
@@ -109,7 +128,9 @@ This is critical to help the user understand what you are doing.
 
 9. Create a feature branch:
    - Derive a short description from the issue title: lowercase, replace spaces and special characters with hyphens, strip any characters that are not alphanumeric or hyphens, collapse consecutive hyphens, trim to max 50 characters.
-   - `git checkout -b fix/<issue-key>-<short-description>`
+   - **Check if the branch already exists**: Run `cd $REPO_DIR && git branch -r | grep fix/<issue-key>` to see if a remote branch exists.
+     - If it exists, ask the user: "A branch for this issue already exists. Do you want to (1) continue on that branch, (2) delete it and start fresh, or (3) use a unique name?"
+   - Create the branch: `cd $REPO_DIR && git checkout -b fix/<issue-key>-<short-description>`
 
 10. Implement the code changes as described in the approved plan:
     - Make each change carefully, following existing code conventions.
@@ -123,21 +144,29 @@ This is critical to help the user understand what you are doing.
 
 ## Phase 5: Security & Code Review
 
-12. **Security Review** — Analyze the diff (`git diff <default-branch>...HEAD`) for:
-    - Hardcoded secrets (API keys, passwords, tokens, credentials)
-    - Injection vulnerabilities (SQL injection, XSS, command injection, SSRF)
-    - Weak or broken cryptography
-    - Insecure deserialization
-    - Authentication and authorization weaknesses
-    - Path traversal or file inclusion issues
+**Extension Detection**: Before running reviews, check if the optional extensions are installed:
+- Run: `gemini extensions list 2>/dev/null | grep -q "security"` to check for security extension
+- Run: `gemini extensions list 2>/dev/null | grep -q "code-review"` to check for code-review extension
+
+12. **Security Review**:
+    - **If the security extension is installed**: Run it via shell command: `cd $REPO_DIR && gemini run --debug "/security:analyze"`. Capture the output and parse any findings.
+    - **Otherwise (fall back to built-in)**: Analyze the diff (`git diff <default-branch>...HEAD`) for:
+      - Hardcoded secrets (API keys, passwords, tokens, credentials)
+      - Injection vulnerabilities (SQL injection, XSS, command injection, SSRF)
+      - Weak or broken cryptography
+      - Insecure deserialization
+      - Authentication and authorization weaknesses
+      - Path traversal or file inclusion issues
 
     Classify any findings as **CRITICAL**, **HIGH**, **MEDIUM**, or **LOW**.
 
-13. **Code Review** — Analyze the same diff for:
-    - Functional bugs and logic errors
-    - Performance bottlenecks (N+1 queries, resource leaks, unnecessary allocations)
-    - Maintainability concerns (overly complex logic, poor naming, missing error handling)
-    - Consistency with the existing codebase style
+13. **Code Review**:
+    - **If the code-review extension is installed**: Run it via shell command: `cd $REPO_DIR && gemini run --debug "/code-review"`. Capture the output and parse any findings.
+    - **Otherwise (fall back to built-in)**: Analyze the same diff for:
+      - Functional bugs and logic errors
+      - Performance bottlenecks (N+1 queries, resource leaks, unnecessary allocations)
+      - Maintainability concerns (overly complex logic, poor naming, missing error handling)
+      - Consistency with the existing codebase style
 
     Classify any findings as **CRITICAL**, **HIGH**, **MEDIUM**, or **LOW**.
 
@@ -153,8 +182,12 @@ This is critical to help the user understand what you are doing.
     - Commit with a message: `fix(<issue-key>): <short summary of the fix>`
 
 16. Use the GitHub MCP server to push and create the PR:
-    - Call `create_branch` if needed, or push the local branch using shell: `git push -u origin fix/<issue-key>-<short-description>`
-    - Call `create_pull_request` with:
+    - Push the local branch: `cd $REPO_DIR && git push -u origin fix/<issue-key>-<short-description>`. If push fails due to existing remote branch, use `git push -f` after confirming with the user.
+    - **Check for existing PR before creating**: Call `search_pull_requests` with query `head:fix/<issue-key> repo:<owner>/<repo>` to find any existing PRs for this branch.
+      - If a PR exists and is **open**: Call `update_pull_request` to update its title/body instead of creating a new one.
+      - If a PR exists and is **closed/merged**: Create a new PR as normal.
+      - If no PR exists: Create a new PR.
+    - Call `create_pull_request` (or `update_pull_request` if updating) with:
       - **title**: `fix(<issue-key>): <short summary>`
       - **body**: A structured PR body containing:
         ```
