@@ -1,0 +1,194 @@
+/* Modern CSS styles for Image Assist application */
+
+:root {
+    --primary-color: #007bff; /* Changed from #4a6fa5 */
+    --secondary-color: #0056b3; /* Changed from #166088 */
+    --accent-color: #6c757d; /* Changed from #23967f */
+    --background-color: #e9ecef; /* Changed from #f5f7fa */
+    --text-color: #212529; /* Changed from #333 */
+    --light-gray: #ced4da; /* Changed from #e0e0e0 */
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --border-radius: 8px;
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.logo {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.tagline {
+    color: var(--secondary-color);
+    font-size: 1.1rem;
+}
+
+section {
+    margin-bottom: 2rem;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.layout-container {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.generator-section {
+    flex: 1;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.result-section {
+    flex: 1.5;
+    min-height: 375px;
+    display: flex;
+    flex-direction: column;
+}
+
+.empty-result {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    font-style: italic;
+    border: 2px dashed var(--light-gray);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    flex-grow: 1;
+}
+
+h2 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+button:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+}
+
+.generate-btn {
+    width: 100%;
+}
+
+.ascii-result {
+    background-color: #f8f8f8;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    border: 1px solid var(--light-gray);
+}
+
+pre {
+    white-space: pre-wrap;
+    font-family: 'Courier New', monospace;
+    line-height: 1.2;
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+}
+
+.copy-btn {
+    background-color: var(--accent-color);
+}
+
+.copy-btn:hover {
+    background-color: #1a7262;
+}
+
+footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--light-gray);
+    color: #777;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .logo {
+        font-size: 2rem;
+    }
+    
+    .layout-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
