@@ -21,9 +21,10 @@ fi
 if [ -z "$JIRA_URL" ]; then read -p "Enter JIRA_URL (e.g., https://your-domain.atlassian.net): " JIRA_URL; fi
 if [ -z "$JIRA_EMAIL" ]; then read -p "Enter JIRA_EMAIL (e.g., user@example.com): " JIRA_EMAIL; fi
 if [ -z "$JIRA_API_TOKEN" ]; then read -s -p "Enter JIRA_API_TOKEN: " JIRA_API_TOKEN; echo ""; fi
+if [ -z "$GITHUB_PERSONAL_ACCESS_TOKEN" ]; then read -s -p "Enter GITHUB_PERSONAL_ACCESS_TOKEN: " GITHUB_PERSONAL_ACCESS_TOKEN; echo ""; fi
 
-if [ -z "$JIRA_URL" ] || [ -z "$JIRA_EMAIL" ] || [ -z "$JIRA_API_TOKEN" ]; then
-    echo "❌ Missing required credentials. Please set JIRA_URL, JIRA_EMAIL, and JIRA_API_TOKEN."
+if [ -z "$JIRA_URL" ] || [ -z "$JIRA_EMAIL" ] || [ -z "$JIRA_API_TOKEN" ] || [ -z "$GITHUB_PERSONAL_ACCESS_TOKEN" ]; then
+    echo "❌ Missing required credentials. Please set JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN, and GITHUB_PERSONAL_ACCESS_TOKEN."
     exit 1
 fi
 
@@ -70,6 +71,7 @@ echo "🔧 Configuring Manifest for Native Execution..."
 export JIRA_URL
 export JIRA_EMAIL
 export JIRA_API_TOKEN
+export GITHUB_PERSONAL_ACCESS_TOKEN
 export VENV_PYTHON
 export MCP_SCRIPT
 
@@ -84,6 +86,12 @@ manifest.mcpServers.atlassian.env = {
     "JIRA_TOKEN": process.env.JIRA_API_TOKEN,
     "VENV_PYTHON": process.env.VENV_PYTHON,
     "MCP_SCRIPT": process.env.MCP_SCRIPT
+};
+
+// Configure GitHub MCP server with environment variable
+manifest.mcpServers.github.env = {
+    "GITHUB_PERSONAL_ACCESS_TOKEN": process.env.GITHUB_PERSONAL_ACCESS_TOKEN,
+    "GITHUB_TOOLSETS": "repos,pull_requests,context" // explicit toolsets
 };
 
 // Construct command using shell variable expansion

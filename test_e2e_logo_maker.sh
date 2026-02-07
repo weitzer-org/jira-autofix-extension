@@ -44,15 +44,14 @@ exp_internal 1
 match_max 100000
 
 expect {
-    # 1. Antigravity Prompt
-    "Do you want to connect Antigravity*" {
+    # 1. Antigravity Prompt (Handle line wrapping)
+    -re "connect Antigravity" {
         send "3\r"
         exp_continue
     }
 
     # 2. MCP Permission Prompts
-    # Match "Action Required" header or "Allow execution" loosely
-    # -re enables regex matching
+    # Match "Action Required", "Allow execution", or "Apply this change?"
     -re "Action Required" {
         send "3\r"
         exp_continue
@@ -60,6 +59,24 @@ expect {
     -re "Allow execution of MCP tool" {
         send "3\r"
         exp_continue
+    }
+    -re "Apply this change" {
+        send "3\r"
+        exp_continue
+    }
+    -re "Allow execution of MCP tool" {
+        send "3\r"
+        exp_continue
+    }
+
+    # Error Catching: Fail fast on configuration errors
+    -re "Invalid URL" {
+        puts "\n❌ Error: Invalid URL detected (likely JIRA_URL environment variable was not expanded). Please run './setup_local_native.sh' (do not use 'gemini extensions link')."
+        exit 1
+    }
+    -re "Error calling tool" {
+        puts "\n❌ Error: Tool execution failed. Check logs."
+        exit 1
     }
 
     # 3. Repository Confirmation
