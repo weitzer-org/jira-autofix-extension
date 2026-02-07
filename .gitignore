@@ -17,3 +17,5 @@ gemini-extension.json.bak
 # Temporary Directories
 logo-maker-weitzer/
 tmp/
+google-cloud-cli-darwin-arm.tar.gz
+google-cloud-cli/
