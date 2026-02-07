@@ -42,7 +42,7 @@ This is critical to help the user understand what you are doing.
    - If no ticket is provided, ask the user for the Jira ticket URL or key.
 
 2. Use the Atlassian MCP server to fetch the issue details:
-   - Call `jira_get_issue` with the issue key to retrieve the summary, description, acceptance criteria, comments, priority, labels, and components.
+   - Call `jira_get_issue` with the issue key AND `fields="*all"` to retrieve ALL fields in a single call (summary, description, acceptance criteria, comments, priority, labels, components, etc.).
    - Call `jira_search` with a JQL query to find linked/related issues (e.g., parent epic, blockers, subtasks). Example JQL: `issue in linkedIssues("PROJ-1234") OR parent = "PROJ-1234"`
    - Call `jira_get_issue_link_types` to check for any linked external resources.
 
@@ -105,7 +105,9 @@ This is critical to help the user understand what you are doing.
 
 9. Create a feature branch:
    - Derive a short description from the issue title: lowercase, replace spaces and special characters with hyphens, strip any characters that are not alphanumeric or hyphens, collapse consecutive hyphens, trim to max 50 characters.
-   - `git checkout -b fix/<issue-key>-<short-description>`
+   - **Check if the branch already exists**: Run `cd $REPO_DIR && git branch -r | grep fix/<issue-key>` to see if a remote branch exists.
+     - If it exists, ask the user: "A branch for this issue already exists. Do you want to (1) continue on that branch, (2) delete it and start fresh, or (3) use a unique name?"
+   - Create the branch: `cd $REPO_DIR && git checkout -b fix/<issue-key>-<short-description>`
 
 10. Implement the code changes as described in the approved plan:
     - Make each change carefully, following existing code conventions.
@@ -149,8 +151,12 @@ This is critical to help the user understand what you are doing.
     - Commit with a message: `fix(<issue-key>): <short summary of the fix>`
 
 16. Use the GitHub MCP server to push and create the PR:
-    - Call `create_branch` if needed, or push the local branch using shell: `git push -u origin fix/<issue-key>-<short-description>`
-    - Call `create_pull_request` with:
+    - Push the local branch: `cd $REPO_DIR && git push -u origin fix/<issue-key>-<short-description>`. If push fails due to existing remote branch, use `git push -f` after confirming with the user.
+    - **Check for existing PR before creating**: Call `search_pull_requests` with query `head:fix/<issue-key> repo:<owner>/<repo>` to find any existing PRs for this branch.
+      - If a PR exists and is **open**: Call `update_pull_request` to update its title/body instead of creating a new one.
+      - If a PR exists and is **closed/merged**: Create a new PR as normal.
+      - If no PR exists: Create a new PR.
+    - Call `create_pull_request` (or `update_pull_request` if updating) with:
       - **title**: `fix(<issue-key>): <short summary>`
       - **body**: A structured PR body containing:
         ```
