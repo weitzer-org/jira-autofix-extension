@@ -197,10 +197,13 @@ This is critical to help the user understand what you are doing.
       - Code review: <PASS or summary of findings>
       ```
 
-19. Confirm to the developer that the workflow is complete:
-    - Display the PR URL
-    - Confirm the Jira comment was posted
-    - Summarize what was done
+19. Confirm to the developer that the workflow is complete by printing a structured summary:
+    - You must output a markdown block titled `## 🚀 Execution Summary` containing:
+      - **Jira Issue**: Link to the issue.
+      - **Pull Request**: Link to the created PR.
+      - **Status**: "Comment posted to Jira"
+      - **Next Steps**: "Please review and merge the PR."
+    - Do not just say "I'm done". You must provide this summary artifact.
 
 </INSTRUCTIONS>
 
