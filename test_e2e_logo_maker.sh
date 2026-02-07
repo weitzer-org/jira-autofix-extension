@@ -62,6 +62,16 @@ expect {
         exp_continue
     }
 
+    # Error Catching: Fail fast on configuration errors
+    -re "Invalid URL" {
+        puts "\n❌ Error: Invalid URL detected (likely JIRA_URL environment variable was not expanded). Please run './setup_local_native.sh' (do not use 'gemini extensions link')."
+        exit 1
+    }
+    -re "Error calling tool" {
+        puts "\n❌ Error: Tool execution failed. Check logs."
+        exit 1
+    }
+
     # 3. Repository Confirmation
     -re "Please provide the GitHub repository URL" {
         send "$REPO_URL\r"
