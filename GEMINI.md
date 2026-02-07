@@ -16,7 +16,7 @@ When a user wants to fix a Jira issue, resolve a bug, or implement a task from J
 Use the Atlassian MCP server tools to:
 - Fetch Jira issue details (`jira_get_issue`)
 - Search for related issues (`jira_search`)
-- Get remote links on issues (`jira_get_issue_link_types`)
+- Get remote links on issues (`jira_get_link_types`)
 - Add comments to issues (`jira_add_comment`)
 - Transition issues (`jira_transition_issue`)
 - Create issues (`jira_create_issue`)

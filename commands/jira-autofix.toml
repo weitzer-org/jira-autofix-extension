@@ -50,7 +50,7 @@ This is critical to help the user understand what you are doing.
 2. Use the Atlassian MCP server to fetch the issue details:
    - Call `jira_get_issue` with the issue key AND `fields="*all"` to retrieve ALL fields in a single call (summary, description, acceptance criteria, comments, priority, labels, components, etc.).
    - Call `jira_search` with a JQL query to find linked/related issues (e.g., parent epic, blockers, subtasks). Example JQL: `issue in linkedIssues("PROJ-1234") OR parent = "PROJ-1234"`
-   - Call `jira_get_issue_link_types` to check for any linked external resources.
+   - Call `jira_get_link_types` to check for any linked external resources.
 
 3. Summarize what you learned from the Jira context. Present the following to the developer:
    - **Issue**: key, summary, type, priority
