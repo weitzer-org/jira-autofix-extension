@@ -51,7 +51,7 @@
       "name": "GitHub Personal Access Token",
       "description": "GitHub PAT with 'repo' scope for creating branches and pull requests",
       "envVar": "GITHUB_PERSONAL_ACCESS_TOKEN",
-      "sensitive": false
+      "sensitive": true
     },
     {
       "name": "Jira URL",
@@ -69,7 +69,7 @@
       "name": "Jira API Token",
       "description": "Jira API Token (create at https://id.atlassian.com/manage-profile/security/api-tokens)",
       "envVar": "JIRA_API_TOKEN",
-      "sensitive": false
+      "sensitive": true
     }
   ]
 }
