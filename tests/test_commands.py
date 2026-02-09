@@ -321,9 +321,9 @@ class TestCommandsIntegration:
             with open(filepath, 'rb') as f:
                 config = tomllib.load(f)
 
-            if filename != "jira-autofix.toml":  # clearrepo and setrepo definitely reference it
-                assert config_path in config["prompt"], \
-                    f"{filename} does not reference {config_path}"
+            # All commands should reference the config file path
+            assert config_path in config["prompt"], \
+                f"{filename} does not reference {config_path}"
 
     def test_all_toml_files_parseable(self):
         """Verify all TOML files in commands directory are parseable."""

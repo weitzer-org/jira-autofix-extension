@@ -112,7 +112,7 @@ class TestExtensionConfig:
         github_token = next((s for s in settings if s["name"] == "GitHub Personal Access Token"), None)
         assert github_token is not None
         assert github_token["envVar"] == "GITHUB_PERSONAL_ACCESS_TOKEN"
-        assert github_token["sensitive"] == False
+        assert github_token["sensitive"] == True
         assert "repo" in github_token["description"]
 
     def test_jira_settings(self, extension_config):
@@ -135,7 +135,7 @@ class TestExtensionConfig:
         jira_token = next((s for s in settings if s["name"] == "Jira API Token"), None)
         assert jira_token is not None
         assert jira_token["envVar"] == "JIRA_API_TOKEN"
-        assert jira_token["sensitive"] == False
+        assert jira_token["sensitive"] == True
 
     def test_no_extra_top_level_fields(self, extension_config):
         """Verify there are no unexpected top-level fields."""

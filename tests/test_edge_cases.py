@@ -53,10 +53,10 @@ class TestJSONEdgeCases:
         env_vars = set()
         for setting in config["settings"]:
             env_var = setting["envVar"]
-            # Check for common typos
-            assert "TOKEN" not in env_var or "TOEKN" not in env_var
-            assert "GITHUB" not in env_var or "GITHBU" not in env_var
-            assert "JIRA" not in env_var or "JRIA" not in env_var
+            # Check for common typos - these should NOT be present
+            assert "TOEKN" not in env_var, f"Typo 'TOEKN' found in {env_var}"
+            assert "GITHBU" not in env_var, f"Typo 'GITHBU' found in {env_var}"
+            assert "JRIA" not in env_var, f"Typo 'JRIA' found in {env_var}"
 
             # Check for duplicate env vars
             assert env_var not in env_vars, f"Duplicate env var: {env_var}"
