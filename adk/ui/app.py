@@ -9,20 +9,32 @@ Provides a simple interface for:
 """
 import os
 import json
+import asyncio
 from flask import Flask, render_template, request, jsonify, session
+from flask_session import Session
+from dotenv import load_dotenv
+
+from flask import Flask, render_template, request, jsonify, session
+from flask_session import Session
 from dotenv import load_dotenv
 
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
+import google.genai.types as types
 
 from adk.agent import root_agent
 from adk.workflow.phases import WorkflowState, PhaseStatus
 
 # Load environment variables
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-key")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev_secret_key")
+
+# Configure Server-Side Session
+app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_FILE_DIR"] = os.path.join(os.path.dirname(__file__), "flask_session")
+Session(app)
 
 # Session service for ADK
 session_service = InMemorySessionService()
@@ -90,7 +102,7 @@ def run_phase():
     elif phase.name == "setup_repo":
         prompt = f"Clone and set up the repository: {state.repo_url or 'auto-detect from issue'}"
     elif phase.name == "plan_fix":
-        prompt = "Analyze the codebase and create a fix plan"
+        prompt = "Analyze the codebase and create a fix plan. Do NOT implement the fix yet. ONLY READ FILES."
     elif phase.name == "implement_fix":
         prompt = "Implement the approved fix plan"
     elif phase.name == "security_review":
@@ -104,47 +116,77 @@ def run_phase():
     
     # Run the agent
     try:
-        # Get or create session
+        import asyncio
+        
+        # Get or create session ID
         session_id = session.get("adk_session_id", f"session_{state.issue_key}")
-        adk_session = session_service.get_or_create_session(
-            app_name="jira_autofix_ui",
-            user_id="web_user",
-            session_id=session_id,
-        )
+        
+        # Create session if it doesn't exist (async methods need asyncio.run)
+        async def get_or_create_adk_session():
+            existing = await session_service.get_session(
+                app_name="jira_autofix_ui",
+                user_id="web_user",
+                session_id=session_id,
+            )
+            if existing is None:
+                return await session_service.create_session(
+                    app_name="jira_autofix_ui",
+                    user_id="web_user",
+                    session_id=session_id,
+                )
+            return existing
+        
+        adk_session = asyncio.run(get_or_create_adk_session())
         session["adk_session_id"] = adk_session.id
         
-        # Execute agent
-        response = runner.run(
-            user_id="web_user",
-            session_id=adk_session.id,
-            new_message=prompt,
+        # Execute agent (run is also async in ADK)
+        # Create a proper Content message for ADK
+        user_message = types.Content(
+            role="user",
+            parts=[types.Part(text=prompt)]
         )
         
-        # Collect response
-        result_text = ""
-        for event in response:
-            if hasattr(event, "content") and event.content:
-                for part in event.content.parts:
-                    if hasattr(part, "text"):
-                        result_text += part.text
+        async def run_agent():
+            result_text = ""
+            async for event in runner.run_async(
+                user_id="web_user",
+                session_id=adk_session.id,
+                new_message=user_message,
+            ):
+                if hasattr(event, "content") and event.content:
+                    for part in event.content.parts:
+                        if hasattr(part, "text") and part.text is not None:
+                            result_text += part.text
+            return result_text
         
+        result_text = asyncio.run(run_agent())
+        
+        # Update phase status
         # Update phase status
         if phase.requires_approval:
             state.set_phase_status(PhaseStatus.AWAITING_APPROVAL, {"result": result_text})
+            session["workflow_state"] = state.to_dict()
+            return jsonify({
+                "status": "awaiting_approval",
+                "phase": phase.name,
+                "message": phase.approval_message or "Approval required",
+                "result": result_text,
+                "state": state.to_dict(),
+            })
         else:
             state.set_phase_status(PhaseStatus.COMPLETED, {"result": result_text})
             state.advance_phase()
-        
-        session["workflow_state"] = state.to_dict()
-        
-        return jsonify({
-            "status": "success",
-            "phase": phase.name,
-            "result": result_text,
-            "state": state.to_dict(),
-        })
+            session["workflow_state"] = state.to_dict()
+            return jsonify({
+                "status": "success",
+                "phase": phase.name,
+                "result": result_text,
+                "state": state.to_dict(),
+            })
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()  # Print full traceback to console
         state.set_phase_status(PhaseStatus.FAILED, {"error": str(e)})
         session["workflow_state"] = state.to_dict()
         return jsonify({
@@ -171,7 +213,7 @@ def approve_phase():
     session["workflow_state"] = state.to_dict()
     
     return jsonify({
-        "status": "approved",
+        "status": "success",
         "next_phase": state.current_phase.name if state.current_phase else None,
         "state": state.to_dict(),
     })
@@ -213,4 +255,11 @@ def get_status():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    # Disable reloader to prevent crashes when agent modifies files
+    # (e.g., cloning repos). Debug mode is kept for error pages.
+    app.run(
+        debug=True, 
+        host="0.0.0.0", 
+        port=5000,
+        use_reloader=False,  # Disable reloader for stability
+    )

@@ -18,6 +18,7 @@ def _parse_repo(repo: str) -> tuple[str, str]:
 
 
 def get_file_contents(repo: str, path: str, ref: str = None) -> dict[str, Any]:
+    print(f"DEBUG: get_file_contents called with repo='{repo}', path='{path}', ref='{ref}'", flush=True)
     """
     Get contents of a file from a GitHub repository.
     
@@ -31,11 +32,37 @@ def get_file_contents(repo: str, path: str, ref: str = None) -> dict[str, Any]:
     """
     gh = _get_github_client()
     owner, name = _parse_repo(repo)
-    repository = gh.get_repo(f"{owner}/{name}")
     
     try:
-        content = repository.get_contents(path, ref=ref)
+        repository = gh.get_repo(f"{owner}/{name}")
+        
+        # Only pass ref if specified (None causes assertion error in PyGithub)
+        if ref:
+            content = repository.get_contents(path, ref=ref)
+        else:
+            content = repository.get_contents(path)
+            
+        # Handle directory listing
+        if isinstance(content, list):
+            files = []
+            for file_content in content:
+                files.append({
+                    "name": file_content.name,
+                    "path": file_content.path,
+                    "type": file_content.type,
+                    "size": file_content.size,
+                    "sha": file_content.sha,
+                })
+            return {
+                "type": "directory",
+                "path": path,
+                "files": files,
+                "count": len(files)
+            }
+            
+        # Handle single file
         return {
+            "type": "file",
             "path": content.path,
             "content": content.decoded_content.decode("utf-8"),
             "sha": content.sha,
@@ -46,6 +73,7 @@ def get_file_contents(repo: str, path: str, ref: str = None) -> dict[str, Any]:
 
 
 def create_branch(repo: str, branch_name: str, base_branch: str = None) -> dict[str, Any]:
+    print(f"DEBUG: create_branch called with repo='{repo}', branch_name='{branch_name}', base_branch='{base_branch}'")
     """
     Create a new branch in a GitHub repository.
     
@@ -59,17 +87,18 @@ def create_branch(repo: str, branch_name: str, base_branch: str = None) -> dict[
     """
     gh = _get_github_client()
     owner, name = _parse_repo(repo)
-    repository = gh.get_repo(f"{owner}/{name}")
     
-    if base_branch is None:
-        base_branch = repository.default_branch
-    
-    # Get the SHA of the base branch
-    base_ref = repository.get_branch(base_branch)
-    base_sha = base_ref.commit.sha
-    
-    # Create the new branch
     try:
+        repository = gh.get_repo(f"{owner}/{name}")
+        
+        if base_branch is None:
+            base_branch = repository.default_branch
+        
+        # Get the SHA of the base branch
+        base_ref = repository.get_branch(base_branch)
+        base_sha = base_ref.commit.sha
+        
+        # Create the new branch
         ref = repository.create_git_ref(f"refs/heads/{branch_name}", base_sha)
         return {
             "branch": branch_name,
@@ -90,6 +119,7 @@ def create_pull_request(
     head: str,
     base: str = None,
 ) -> dict[str, Any]:
+    print(f"DEBUG: create_pull_request called with repo='{repo}', title='{title}', head='{head}', base='{base}'")
     """
     Create a pull request in a GitHub repository.
     
@@ -105,12 +135,13 @@ def create_pull_request(
     """
     gh = _get_github_client()
     owner, name = _parse_repo(repo)
-    repository = gh.get_repo(f"{owner}/{name}")
-    
-    if base is None:
-        base = repository.default_branch
     
     try:
+        repository = gh.get_repo(f"{owner}/{name}")
+        
+        if base is None:
+            base = repository.default_branch
+        
         pr = repository.create_pull(title=title, body=body, head=head, base=base)
         return {
             "number": pr.number,
@@ -140,6 +171,7 @@ def update_file(
     branch: str,
     sha: str = None,
 ) -> dict[str, Any]:
+    print(f"DEBUG: update_file called with repo='{repo}', path='{path}', message='{message}'", flush=True)
     """
     Create or update a file in a GitHub repository.
     
@@ -156,9 +188,10 @@ def update_file(
     """
     gh = _get_github_client()
     owner, name = _parse_repo(repo)
-    repository = gh.get_repo(f"{owner}/{name}")
     
     try:
+        repository = gh.get_repo(f"{owner}/{name}")
+        
         if sha:
             result = repository.update_file(path, message, content, sha, branch=branch)
         else:

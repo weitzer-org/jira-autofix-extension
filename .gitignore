@@ -19,3 +19,15 @@ logo-maker-weitzer/
 tmp/
 google-cloud-cli-darwin-arm.tar.gz
 google-cloud-cli/
+
+# Log files
+*.log
+
+# Flask session data
+adk/ui/flask_session/
+
+# ADK cache
+.adk/
+
+# Scratch scripts
+check_github.py

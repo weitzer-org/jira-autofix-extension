@@ -1,356 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jira Autofix Agent</title>
-    <style>
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --error: #ef4444;
-            --bg: #0f172a;
-            --bg-card: #1e293b;
-            --text: #f1f5f9;
-            --text-muted: #94a3b8;
-            --border: #334155;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 2rem;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary), #a855f7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .subtitle {
-            color: var(--text-muted);
-            margin-bottom: 2rem;
-        }
-        
-        .card {
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
-        }
-        
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-        
-        input[type="text"] {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: var(--bg);
-            color: var(--text);
-            font-size: 1rem;
-        }
-        
-        input[type="text"]:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        button {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-        
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-        
-        .btn-danger {
-            background: var(--error);
-            color: white;
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-        
-        .phases {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .phase {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            background: var(--bg);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-        
-        .phase-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            margin-right: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-        }
-        
-        .phase-pending .phase-icon {
-            background: var(--border);
-        }
-        
-        .phase-in_progress .phase-icon {
-            background: var(--warning);
-            animation: pulse 1.5s infinite;
-        }
-        
-        .phase-awaiting_approval .phase-icon {
-            background: var(--warning);
-        }
-        
-        .phase-completed .phase-icon,
-        .phase-approved .phase-icon {
-            background: var(--success);
-        }
-        
-        .phase-failed .phase-icon,
-        .phase-rejected .phase-icon {
-            background: var(--error);
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .output {
-            background: var(--bg);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.875rem;
-            white-space: pre-wrap;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .approval-card {
-            border-color: var(--warning);
-            background: rgba(245, 158, 11, 0.1);
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
-    <div class="container">
-        <h1>🔧 Jira Autofix Agent</h1>
-        <p class="subtitle">ADK-powered agent for automated issue resolution</p>
-        
-        <!-- Start Form -->
-        <div id="start-form" class="card">
-            <h2 style="margin-bottom: 1rem;">Start New Fix</h2>
-            <div class="form-group">
-                <label for="issue-key">Jira Issue Key</label>
-                <input type="text" id="issue-key" placeholder="e.g., SCRUM-1">
-            </div>
-            <div class="form-group">
-                <label for="repo-url">GitHub Repository (optional)</label>
-                <input type="text" id="repo-url" placeholder="e.g., owner/repo">
-            </div>
-            <button class="btn-primary" onclick="startWorkflow()">Start Workflow</button>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            Jira Autofix
         </div>
-        
-        <!-- Progress -->
-        <div id="progress-section" class="card hidden">
-            <h2 style="margin-bottom: 1rem;">Workflow Progress</h2>
-            <div id="phases" class="phases"></div>
-            <button id="run-btn" class="btn-primary" style="margin-top: 1rem;" onclick="runPhase()">
-                Run Next Phase
-            </button>
-        </div>
-        
-        <!-- Approval -->
-        <div id="approval-section" class="card approval-card hidden">
-            <h2 style="margin-bottom: 0.5rem;">⚠️ Approval Required</h2>
-            <p id="approval-message" style="color: var(--text-muted);"></p>
-            <div class="output" id="approval-content"></div>
-            <div class="btn-group">
-                <button class="btn-success" onclick="approve()">✓ Approve</button>
-                <button class="btn-danger" onclick="reject()">✗ Reject</button>
+
+        <ul class="step-list" id="phase-list">
+            <!-- Populated via JS -->
+            <li class="step-item active" data-phase="0">
+                <div class="step-status"></div>
+                <span class="step-text">Start Workflow</span>
+            </li>
+            <li class="step-item" data-phase="1">
+                <div class="step-status"></div>
+                <span class="step-text">Gather Context</span>
+            </li>
+            <li class="step-item" data-phase="2">
+                <div class="step-status"></div>
+                <span class="step-text">Setup Repo</span>
+            </li>
+            <li class="step-item" data-phase="3">
+                <div class="step-status"></div>
+                <span class="step-text">Plan Fix</span>
+            </li>
+            <li class="step-item" data-phase="4">
+                <div class="step-status"></div>
+                <span class="step-text">Implement</span>
+            </li>
+            <li class="step-item" data-phase="5">
+                <div class="step-status"></div>
+                <span class="step-text">Security Review</span>
+            </li>
+            <li class="step-item" data-phase="6">
+                <div class="step-status"></div>
+                <span class="step-text">Create PR</span>
+            </li>
+            <li class="step-item" data-phase="7">
+                <div class="step-status"></div>
+                <span class="step-text">Update Jira</span>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <div id="active-phase-title" style="font-weight: 600;">Full Workflow</div>
+            <div class="status-badge" id="workflow-status">Ready</div>
+        </header>
+
+        <div class="content-area" id="content-area">
+
+            <!-- Setup Form (Initial View) -->
+            <div id="setup-view" class="active-view">
+                <div class="card">
+                    <div class="card-header">Start New Fix</div>
+                    <div class="form-group">
+                        <label class="form-label" for="issue-key">Jira Issue Key</label>
+                        <input type="text" id="issue-key" class="form-input" placeholder="e.g. SCRUM-1" value="SCRUM-1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="repo-url">Repository URL</label>
+                        <input type="text" id="repo-url" class="form-input" placeholder="https://github.com/owner/repo"
+                            value="https://github.com/benw307/logo-maker-weitzer">
+                    </div>
+                    <button class="btn btn-primary" id="start-btn" onclick="startWorkflow()">
+                        Start Workflow
+                    </button>
+                </div>
             </div>
+
+            <!-- Dynamic Phase Content -->
+            <div id="phase-content-view" class="hidden">
+                <div class="card">
+                    <div class="card-header" id="phase-header">Phase Output</div>
+                    <div id="phase-output"
+                        style="white-space: pre-wrap; font-family: monospace; font-size: 0.9em; color: #cbd5e1;">Waiting
+                        to start...</div>
+                </div>
+
+                <div class="actions-row" style="margin-top: 1rem;">
+                    <button class="btn btn-primary" id="run-btn" onclick="runPhase()" disabled>Run Next Phase</button>
+                </div>
+            </div>
+
+            <!-- Implementation Summary View (Hidden by default) -->
+            <div id="summary-view" class="hidden">
+                <div class="card">
+                    <div class="card-header">Implementation Summary</div>
+                    <div id="summary-content">No implementation details yet.</div>
+                </div>
+            </div>
+
         </div>
-        
-        <!-- Output -->
-        <div id="output-section" class="card hidden">
-            <h2 style="margin-bottom: 1rem;">Output</h2>
-            <div class="output" id="output"></div>
+    </main>
+
+    <!-- Plan Approval Modal -->
+    <div class="modal-overlay" id="approval-modal">
+        <div class="modal-content">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Approval Required</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                The agent has proposed a fix plan. Please review the details below before proceeding.
+            </p>
+
+            <div class="card" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2);">
+                <pre id="approval-plan-text">Plan details loading...</pre>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-danger" onclick="handleApproval('reject')">Reject</button>
+                <button class="btn btn-secondary" onclick="handleApproval('amend')">Amend Plan</button>
+                <button class="btn btn-success" onclick="handleApproval('approve')">Approve & Proceed</button>
+            </div>
         </div>
     </div>
-    
-    <script>
-        let currentState = null;
-        
-        async function startWorkflow() {
-            const issueKey = document.getElementById('issue-key').value;
-            const repoUrl = document.getElementById('repo-url').value;
-            
-            if (!issueKey) {
-                alert('Please enter a Jira issue key');
-                return;
-            }
-            
-            const response = await fetch('/api/start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ issue_key: issueKey, repo_url: repoUrl }),
-            });
-            
-            const data = await response.json();
-            if (data.error) {
-                alert(data.error);
-                return;
-            }
-            
-            currentState = data.state;
-            document.getElementById('start-form').classList.add('hidden');
-            document.getElementById('progress-section').classList.remove('hidden');
-            updateUI();
-        }
-        
-        async function runPhase() {
-            document.getElementById('run-btn').disabled = true;
-            document.getElementById('run-btn').textContent = 'Running...';
-            
-            const response = await fetch('/api/run', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
-            
-            const data = await response.json();
-            currentState = data.state;
-            
-            document.getElementById('run-btn').disabled = false;
-            document.getElementById('run-btn').textContent = 'Run Next Phase';
-            
-            if (data.result) {
-                document.getElementById('output').textContent = data.result;
-                document.getElementById('output-section').classList.remove('hidden');
-            }
-            
-            updateUI();
-        }
-        
-        async function approve() {
-            const response = await fetch('/api/approve', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
-            
-            const data = await response.json();
-            currentState = data.state;
-            document.getElementById('approval-section').classList.add('hidden');
-            updateUI();
-        }
-        
-        async function reject() {
-            const reason = prompt('Reason for rejection:');
-            if (reason === null) return;
-            
-            const response = await fetch('/api/reject', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reason }),
-            });
-            
-            const data = await response.json();
-            currentState = data.state;
-            updateUI();
-        }
-        
-        function updateUI() {
-            if (!currentState) return;
-            
-            const phasesContainer = document.getElementById('phases');
-            phasesContainer.innerHTML = currentState.phases.map((phase, i) => `
-                <div class="phase phase-${phase.status}">
-                    <div class="phase-icon">
-                        ${phase.status === 'completed' || phase.status === 'approved' ? '✓' : 
-                          phase.status === 'failed' || phase.status === 'rejected' ? '✗' :
-                          phase.status === 'in_progress' || phase.status === 'awaiting_approval' ? '◉' : 
-                          i + 1}
-                    </div>
-                    <span>${phase.description}</span>
-                </div>
-            `).join('');
-            
-            // Check for approval
-            const awaitingApproval = currentState.phases.find(p => p.status === 'awaiting_approval');
-            if (awaitingApproval) {
-                document.getElementById('approval-section').classList.remove('hidden');
-                document.getElementById('approval-message').textContent = 
-                    `Phase "${awaitingApproval.description}" requires your approval.`;
-                document.getElementById('approval-content').textContent = 
-                    awaitingApproval.result?.result || '';
-                document.getElementById('run-btn').classList.add('hidden');
-            } else {
-                document.getElementById('approval-section').classList.add('hidden');
-                document.getElementById('run-btn').classList.remove('hidden');
-            }
-        }
-    </script>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
+
 </html>

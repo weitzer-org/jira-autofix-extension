@@ -6,6 +6,7 @@ from typing import Any
 
 
 def clone_repo(repo_url: str, target_dir: str, token: str = None) -> dict[str, Any]:
+    print(f"DEBUG: clone_repo called with repo_url='{repo_url}', target_dir='{target_dir}'", flush=True)
     """
     Clone a Git repository to a local directory.
     
@@ -48,6 +49,7 @@ def clone_repo(repo_url: str, target_dir: str, token: str = None) -> dict[str, A
 
 
 def checkout_branch(repo_dir: str, branch: str, create: bool = False) -> dict[str, Any]:
+    print(f"DEBUG: checkout_branch called with repo_dir='{repo_dir}', branch='{branch}', create={create}", flush=True)
     """
     Checkout or create a Git branch.
     
@@ -94,6 +96,7 @@ def commit_and_push(
     files: list[str] = None,
     push: bool = True,
 ) -> dict[str, Any]:
+    print(f"DEBUG: commit_and_push called with repo_dir='{repo_dir}', message='{message}'", flush=True)
     """
     Stage, commit, and optionally push changes.
     
@@ -178,6 +181,7 @@ def get_current_branch(repo_dir: str) -> str:
 
 
 def get_default_branch(repo_dir: str) -> str:
+    print(f"DEBUG: get_default_branch called with repo_dir='{repo_dir}'", flush=True)
     """Get the default branch name from remote."""
     try:
         result = subprocess.run(
@@ -195,6 +199,7 @@ def get_default_branch(repo_dir: str) -> str:
 
 
 def pull_latest(repo_dir: str) -> dict[str, Any]:
+    print(f"DEBUG: pull_latest called with repo_dir='{repo_dir}'", flush=True)
     """Pull latest changes from remote."""
     try:
         result = subprocess.run(
