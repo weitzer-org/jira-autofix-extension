@@ -1,4 +1,4 @@
 """ADK Jira Autofix Agent Package."""
-from adk.agent import root_agent
+from async_auto_fix.agent import root_agent
 
 __all__ = ["root_agent"]

@@ -3,9 +3,9 @@ set -e
 
 # Configuration
 REPO_DIR="logo-maker-weitzer"
-VENV_DIR="adk/venv"
+VENV_DIR="async_auto_fix/venv"
 FLASK_PORT=5000
-TEST_SCRIPT="adk/tests/test_full_workflow.py"
+TEST_SCRIPT="async_auto_fix/tests/test_full_workflow.py"
 
 # Colors
 GREEN='\033[0;32m'
@@ -37,7 +37,7 @@ source "$VENV_DIR/bin/activate"
 
 # 4. Start Flask Server
 echo "🌐 Starting Flask server..."
-python -u -m adk.ui.app > flask_e2e.log 2>&1 &
+python -u -m async_auto_fix.ui.app > flask_e2e.log 2>&1 &
 FLASK_PID=$!
 
 # Implement cleanup trap

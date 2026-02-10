@@ -1,7 +1,7 @@
 """
 Unit tests for the Jira Autofix ADK agent.
 
-Run with: pytest adk/tests/ -v
+Run with: pytest async_auto_fix/tests/ -v
 """
 import pytest
 from unittest.mock import Mock, patch, MagicMock

@@ -2,10 +2,10 @@
 import os
 import shutil
 import subprocess
-from typing import Any
+from typing import Any, Optional
 
 
-def clone_repo(repo_url: str, target_dir: str, token: str = None) -> dict[str, Any]:
+def clone_repo(repo_url: str, target_dir: str, token: Optional[str] = None) -> dict[str, Any]:
     print(f"DEBUG: clone_repo called with repo_url='{repo_url}', target_dir='{target_dir}'", flush=True)
     """
     Clone a Git repository to a local directory.

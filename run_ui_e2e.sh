@@ -4,7 +4,7 @@ set -e
 # Configuration
 REPO_URL="https://github.com/benw307/logo-maker-weitzer"
 REPO_DIR="logo-maker-weitzer"
-VENV_DIR="adk/venv"
+VENV_DIR="async_auto_fix/venv"
 
 echo "🚀 Starting UI E2E Test Runner"
 
@@ -39,7 +39,7 @@ fi
 # 4. Start Flask Server
 echo "🌐 Starting Flask server..."
 # We use python -u for unbuffered output to catch startup errors/logs
-python -u -m adk.ui.app > flask_ui_e2e.log 2>&1 &
+python -u -m async_auto_fix.ui.app > flask_ui_e2e.log 2>&1 &
 FLASK_PID=$!
 
 # Implement cleanup trap
@@ -72,11 +72,11 @@ if [ "$SERVER_READY" != "true" ]; then
 fi
 
 # 6. Run UI Test
-echo "🧪 Running UI Test: adk/tests/test_ui_e2e.py"
+echo "🧪 Running UI Test: async_auto_fix/tests/test_ui_e2e.py"
 echo "----------------------------------------"
 
 # Run pytest on the UI test file (default browser: chromium)
-pytest adk/tests/test_ui_e2e.py
+pytest async_auto_fix/tests/test_ui_e2e.py
 
 TEST_EXIT_CODE=$?
 

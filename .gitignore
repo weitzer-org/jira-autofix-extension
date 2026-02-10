@@ -24,7 +24,7 @@ google-cloud-cli/
 *.log
 
 # Flask session data
-adk/ui/flask_session/
+async_auto_fix/ui/flask_session/
 
 # ADK cache
 .adk/

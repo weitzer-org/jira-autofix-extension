@@ -3,7 +3,7 @@
 Full end-to-end API test for the Jira Autofix Flask app.
 
 This script tests all phases of the workflow including approvals.
-Run with: python adk/tests/test_full_workflow.py
+Run with: python async_auto_fix/tests/test_full_workflow.py
 """
 import requests
 import json

@@ -3,7 +3,7 @@
 End-to-end API test for the Jira Autofix Flask app.
 
 This script tests the API endpoints directly without a browser.
-Run with: python adk/tests/test_api_e2e.py
+Run with: python async_auto_fix/tests/test_api_e2e.py
 """
 import requests
 import json
@@ -97,7 +97,7 @@ def main():
         requests.get(BASE_URL, timeout=2)
     except requests.exceptions.ConnectionError:
         print("ERROR: Flask server is not running!")
-        print("Start it with: ./adk/start.sh")
+        print("Start it with: ./async_auto_fix/start.sh")
         sys.exit(1)
     
     try:

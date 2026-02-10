@@ -82,5 +82,5 @@ else
     PORT="${PORT:-5000}"
     echo "🌐 Starting Flask UI on http://localhost:$PORT"
     export FLASK_RUN_PORT="$PORT"
-    python -m adk.ui.app
+    python -m async_auto_fix.ui.app
 fi

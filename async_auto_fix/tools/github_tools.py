@@ -1,6 +1,6 @@
 """GitHub API tools for ADK agent."""
 import os
-from typing import Any
+from typing import Any, Optional
 from github import Github, GithubException
 
 
@@ -17,7 +17,7 @@ def _parse_repo(repo: str) -> tuple[str, str]:
     raise ValueError(f"Invalid repo format: {repo}. Expected 'owner/repo'")
 
 
-def get_file_contents(repo: str, path: str, ref: str = None) -> dict[str, Any]:
+def get_file_contents(repo: str, path: str, ref: Optional[str] = None) -> dict[str, Any]:
     print(f"DEBUG: get_file_contents called with repo='{repo}', path='{path}', ref='{ref}'", flush=True)
     """
     Get contents of a file from a GitHub repository.
@@ -69,10 +69,18 @@ def get_file_contents(repo: str, path: str, ref: str = None) -> dict[str, Any]:
             "size": content.size,
         }
     except GithubException as e:
-        return {"error": str(e), "path": path}
+        error_msg = str(e)
+        if e.status == 404:
+            return {
+                "error": "File or reference not found",
+                "path": path,
+                "ref": ref,
+                "details": "The branch or file may not exist on the remote repository yet."
+            }
+        return {"error": error_msg, "path": path}
 
 
-def create_branch(repo: str, branch_name: str, base_branch: str = None) -> dict[str, Any]:
+def create_branch(repo: str, branch_name: str, base_branch: Optional[str] = None) -> dict[str, Any]:
     print(f"DEBUG: create_branch called with repo='{repo}', branch_name='{branch_name}', base_branch='{base_branch}'")
     """
     Create a new branch in a GitHub repository.
@@ -109,6 +117,12 @@ def create_branch(repo: str, branch_name: str, base_branch: str = None) -> dict[
     except GithubException as e:
         if "Reference already exists" in str(e):
             return {"branch": branch_name, "already_exists": True}
+        if e.status == 404:
+            return {
+                "error": "Base branch not found",
+                "base_branch": base_branch,
+                "details": "The base branch does not exist on the remote repository."
+            }
         raise
 
 
@@ -117,7 +131,7 @@ def create_pull_request(
     title: str,
     body: str,
     head: str,
-    base: str = None,
+    base: Optional[str] = None,
 ) -> dict[str, Any]:
     print(f"DEBUG: create_pull_request called with repo='{repo}', title='{title}', head='{head}', base='{base}'")
     """
@@ -169,7 +183,7 @@ def update_file(
     content: str,
     message: str,
     branch: str,
-    sha: str = None,
+    sha: Optional[str] = None,
 ) -> dict[str, Any]:
     print(f"DEBUG: update_file called with repo='{repo}', path='{path}', message='{message}'", flush=True)
     """

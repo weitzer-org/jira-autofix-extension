@@ -22,8 +22,8 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 import google.genai.types as types
 
-from adk.agent import root_agent
-from adk.workflow.phases import WorkflowState, PhaseStatus
+from async_auto_fix.agent import root_agent
+from async_auto_fix.workflow.phases import WorkflowState, PhaseStatus
 
 # Load environment variables
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
