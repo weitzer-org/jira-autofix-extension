@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jira Autofix Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            Jira Autofix
+        </div>
+
+        <ul class="step-list" id="phase-list">
+            <!-- Populated via JS -->
+            <li class="step-item active" data-phase="0">
+                <div class="step-status"></div>
+                <span class="step-text">Start Workflow</span>
+            </li>
+            <li class="step-item" data-phase="1">
+                <div class="step-status"></div>
+                <span class="step-text">Gather Context</span>
+            </li>
+            <li class="step-item" data-phase="2">
+                <div class="step-status"></div>
+                <span class="step-text">Setup Repo</span>
+            </li>
+            <li class="step-item" data-phase="3">
+                <div class="step-status"></div>
+                <span class="step-text">Plan Fix</span>
+            </li>
+            <li class="step-item" data-phase="4">
+                <div class="step-status"></div>
+                <span class="step-text">Implement</span>
+            </li>
+            <li class="step-item" data-phase="5">
+                <div class="step-status"></div>
+                <span class="step-text">Security Review</span>
+            </li>
+            <li class="step-item" data-phase="6">
+                <div class="step-status"></div>
+                <span class="step-text">Create PR</span>
+            </li>
+            <li class="step-item" data-phase="7">
+                <div class="step-status"></div>
+                <span class="step-text">Update Jira</span>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <div id="active-phase-title" style="font-weight: 600;">Full Workflow</div>
+            <div class="status-badge" id="workflow-status">Ready</div>
+        </header>
+
+        <div class="content-area" id="content-area">
+
+            <!-- Setup Form (Initial View) -->
+            <div id="setup-view" class="active-view">
+                <div class="card">
+                    <div class="card-header">Start New Fix</div>
+                    <div class="form-group">
+                        <label class="form-label" for="issue-key">Jira Issue Key</label>
+                        <input type="text" id="issue-key" class="form-input" placeholder="e.g. SCRUM-1" value="SCRUM-1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="repo-url">Repository URL</label>
+                        <input type="text" id="repo-url" class="form-input" placeholder="https://github.com/owner/repo"
+                            value="https://github.com/benw307/logo-maker-weitzer">
+                    </div>
+                    <button class="btn btn-primary" id="start-btn" onclick="startWorkflow()">
+                        Start Workflow
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Phase Content -->
+            <div id="phase-content-view" class="hidden">
+                <div class="card">
+                    <div class="card-header" id="phase-header">Phase Output</div>
+                    <div id="phase-output"
+                        style="white-space: pre-wrap; font-family: monospace; font-size: 0.9em; color: #cbd5e1;">Waiting
+                        to start...</div>
+                </div>
+
+                <div class="actions-row" style="margin-top: 1rem;">
+                    <button class="btn btn-primary" id="run-btn" onclick="runPhase()" disabled>Run Next Phase</button>
+                </div>
+            </div>
+
+            <!-- Implementation Summary View (Hidden by default) -->
+            <div id="summary-view" class="hidden">
+                <div class="card">
+                    <div class="card-header">Implementation Summary</div>
+                    <div id="summary-content">No implementation details yet.</div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Plan Approval Modal -->
+    <div class="modal-overlay" id="approval-modal">
+        <div class="modal-content">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Approval Required</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                The agent has proposed a fix plan. Please review the details below before proceeding.
+            </p>
+
+            <div class="card" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2);">
+                <pre id="approval-plan-text">Plan details loading...</pre>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-danger" onclick="handleApproval('reject')">Reject</button>
+                <button class="btn btn-secondary" onclick="handleApproval('amend')">Amend Plan</button>
+                <button class="btn btn-success" onclick="handleApproval('approve')">Approve & Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>
